@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { fetchBookById, BookDetails } from '@/app/services/api';
+import { fetchBookById, type BookSummary } from '@/app/services/api';
 import Link from 'next/link';
 import { useDebounce } from '@/app/hooks/useDebounce';
 
 export function SearchBar() {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
-  const [results, setResults] = useState<BookDetails[]>([]);
+  const [results, setResults] = useState<BookSummary[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
