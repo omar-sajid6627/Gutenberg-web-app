@@ -1,0 +1,42 @@
+# The Gutenberg Explorer: the Next.js frontend and the FastAPI backend from
+# ../gutenberg_backend. They are separate repositories but one product, so this
+# file runs both — the frontend is not usable without the API.
+#
+# No key required: without GROQ_API_KEY the ask and summary endpoints answer
+# extractively from the book's own text.
+services:
+  api:
+    build:
+      context: ../gutenberg_backend
+      dockerfile: Dockerfile
+    image: gutenberg-backend:local
+    container_name: gutenberg_api
+    environment:
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3600}
+    ports: ["8600:8000"]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # NEXT_PUBLIC_* is inlined into the client bundle at build time, so it
+        # must be a build arg — a runtime env var has no effect on the
+        # JavaScript the browser runs. This is the URL the *browser* uses.
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8600}
+    image: gutenberg-web:local
+    container_name: gutenberg_web
+    environment:
+      # And this is the URL the Next.js *server* uses, from inside the network,
+      # where "localhost" would mean the frontend container itself.
+      API_BASE_URL_SERVER: http://api:8000
+    ports: ["3600:3000"]
+    depends_on:
+      api: { condition: service_healthy }
