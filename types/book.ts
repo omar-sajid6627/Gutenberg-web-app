@@ -10,7 +10,7 @@ export interface Book {
   cover_url: string | null;
   downloads: number;
   reading_ease_score: number | null;
-  content?: string;
+  content?: string[];
   total_pages?: number;
   book_types?: string[];
   keywords?: { [key: string]: string[] };
