@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { BookChat } from "@/app/components/BookChat"
 import { MarkdownRenderer, detectContentFormat } from "@/app/components/MarkdownRenderer"
 import { apiUrl } from "@/lib/api"
+import { displayAuthor } from "@/lib/recent-books"
 
 interface BookReaderProps {
   book: { id: string; title: string; author: string; ebookNo: string }
@@ -139,7 +140,7 @@ export function BookReader({ book, pages }: BookReaderProps) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-        <div className="container flex h-16 items-center justify-between gap-2 px-4">
+        <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-4">
           <div className="flex min-w-0 items-center gap-2">
             <Button variant="ghost" size="icon" asChild>
               <Link href={`/book/${book.id}`} aria-label={`Back to ${book.title}`}>
@@ -148,7 +149,7 @@ export function BookReader({ book, pages }: BookReaderProps) {
             </Button>
             <div className="min-w-0">
               <h1 className="truncate font-serif text-lg font-semibold">{book.title}</h1>
-              <p className="truncate text-sm text-muted-foreground">{book.author}</p>
+              <p className="truncate text-sm text-muted-foreground">{displayAuthor(book.author)}</p>
             </div>
           </div>
           {totalPages > 0 && (

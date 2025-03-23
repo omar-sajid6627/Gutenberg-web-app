@@ -16,7 +16,10 @@ const wordcloudOptions = {
   rotationAngles: [-90, 0] as [number, number],
   fontSizes: [14, 56] as [number, number],
   padding: 2,
-  fontFamily: "var(--font-serif), Georgia, serif",
+  // A concrete family: the layout measures words on a canvas, which cannot
+  // resolve CSS variables, and mismeasured words overlap.
+  fontFamily: "Georgia, 'Times New Roman', serif",
+  deterministic: true,
   colors: ["#8a3b12", "#1f5e5b", "#6b5a2e", "#a0522d", "#3c4a3e"],
   enableTooltip: true,
 }
@@ -93,8 +96,8 @@ export function SentimentOverview({ state, onRetry }: PanelProps) {
                   { name: "Negative", value: state.data.sentiment.negative },
                 ]}
               >
-                <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                <YAxis width={36} tickLine={false} axisLine={false} />
+                <XAxis dataKey="name" tickLine={false} axisLine={false} interval={0} fontSize={12} />
+                <YAxis width={32} tickLine={false} axisLine={false} fontSize={12} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "var(--chart-tooltip-bg)",
