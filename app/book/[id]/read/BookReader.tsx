@@ -147,7 +147,7 @@ export function BookReader({ book, pages }: BookReaderProps) {
               </Link>
             </Button>
             <div className="min-w-0">
-              <h1 className="truncate font-serif-reading text-lg font-semibold">{book.title}</h1>
+              <h1 className="truncate font-serif text-lg font-semibold">{book.title}</h1>
               <p className="truncate text-sm text-muted-foreground">{book.author}</p>
             </div>
           </div>
@@ -215,7 +215,7 @@ export function BookReader({ book, pages }: BookReaderProps) {
 
         {totalPages === 0 ? (
           <div className="mx-auto max-w-prose py-16 text-center">
-            <h2 className="mb-3 font-serif-reading text-2xl font-semibold">The text is not available here</h2>
+            <h2 className="mb-3 font-serif text-2xl font-semibold">The text is not available here</h2>
             <p className="mb-6 text-muted-foreground">
               The book service could not provide this book&apos;s text. Project Gutenberg itself
               offers it in several formats.

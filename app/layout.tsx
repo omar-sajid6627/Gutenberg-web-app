@@ -1,29 +1,26 @@
-import { Inter, Crimson_Pro } from 'next/font/google';
+import type { Metadata } from 'next';
+import '@fontsource-variable/literata/wght.css';
+import '@fontsource-variable/literata/wght-italic.css';
+import '@fontsource-variable/source-sans-3/wght.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
-const crimsonPro = Crimson_Pro({ subsets: ['latin'], variable: '--font-serif' });
-
-export const metadata = {
-  title: 'Project Gutenberg Explorer',
-  description: 'Explore and analyze classic literature with AI-powered insights',
+export const metadata: Metadata = {
+  title: 'Gutenberg Explorer',
+  description: 'Read Project Gutenberg books, ask questions about them and see how they read.',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${crimsonPro.variable} font-sans antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
+      <body className="font-sans antialiased">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-card focus:px-4 focus:py-2"
         >
+          Skip to content
+        </a>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
         </ThemeProvider>
       </body>

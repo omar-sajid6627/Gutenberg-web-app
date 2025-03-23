@@ -2,62 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Paper and ink: a cream page, near-black ink, an oxblood accent taken from
+ * cloth bindings and a bottle-green secondary. Dark mode is a lamp-lit
+ * reading room rather than an inverted screen.
+ */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --background: 40 38% 95%;
+    --foreground: 30 20% 11%;
+    --card: 40 45% 98%;
+    --card-foreground: 30 20% 11%;
+    --popover: 40 45% 98%;
+    --popover-foreground: 30 20% 11%;
+    --primary: 14 62% 32%;
+    --primary-foreground: 40 45% 97%;
+    --secondary: 172 38% 24%;
+    --secondary-foreground: 40 45% 97%;
+    --muted: 38 30% 89%;
+    --muted-foreground: 30 12% 34%;
+    --accent: 38 34% 86%;
+    --accent-foreground: 30 20% 11%;
+    --destructive: 0 65% 40%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --radius: 0.75rem;
-    
-    /* Chart colors */
-    --chart-bar: #333333;
-    --chart-tooltip-bg: #111111;
-    --chart-tooltip-text: #ffffff;
-    --chart-hover-bg: rgba(0, 0, 0, 0.05);
+    --border: 36 22% 80%;
+    --input: 36 22% 74%;
+    --ring: 14 62% 32%;
+    --radius: 0.5rem;
+
+    --chart-bar: hsl(14 62% 32%);
+    --chart-tooltip-bg: hsl(30 20% 11%);
+    --chart-tooltip-text: hsl(40 45% 97%);
+    --chart-hover-bg: hsl(38 30% 89% / 0.6);
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --background: 28 18% 8%;
+    --foreground: 40 30% 88%;
+    --card: 28 16% 11%;
+    --card-foreground: 40 30% 88%;
+    --popover: 28 16% 11%;
+    --popover-foreground: 40 30% 88%;
+    --primary: 22 70% 62%;
+    --primary-foreground: 28 18% 8%;
+    --secondary: 170 30% 55%;
+    --secondary-foreground: 28 18% 8%;
+    --muted: 28 12% 16%;
+    --muted-foreground: 36 14% 66%;
+    --accent: 28 12% 18%;
+    --accent-foreground: 40 30% 88%;
+    --destructive: 0 62% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    
-    /* Chart colors */
-    --chart-bar: #ffffff;
-    --chart-tooltip-bg: #000000;
-    --chart-tooltip-text: #ffffff;
-    --chart-hover-bg: rgba(255, 255, 255, 0.1);
+    --border: 28 10% 22%;
+    --input: 28 10% 28%;
+    --ring: 22 70% 62%;
+
+    --chart-bar: hsl(22 70% 62%);
+    --chart-tooltip-bg: hsl(40 30% 88%);
+    --chart-tooltip-text: hsl(28 18% 8%);
+    --chart-hover-bg: hsl(28 12% 18% / 0.7);
   }
 }
 
@@ -67,122 +70,33 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 }
-
-/* Custom Animations */
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-/* Typography */
-.font-serif-reading {
-  font-family: "Crimson Pro", Georgia, serif;
-}
-
-.font-sans-ui {
-  font-family: "Inter", system-ui, sans-serif;
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-secondary;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-primary/50 rounded-full;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-primary/70;
-}
-
-@keyframes glowShift {
-  0% {
-    box-shadow: 0 0 8px #ff00ff;
-  }
-  50% {
-    box-shadow: 0 0 16px #00ffff;
-  }
-  100% {
-    box-shadow: 0 0 8px #ff00ff;
-  }
-}
-
-/* Sentiment Analysis Styles */
-.book-sentiment {
-  margin: 2rem 0;
-  padding: 1rem;
-  background: var(--background);
-  border-radius: 8px;
-}
-
-.sentiment-overview {
-  margin-bottom: 1.5rem;
-}
-
-.sentiment-overview .positive {
-  color: #22c55e;
-}
-
-.sentiment-overview .negative {
-  color: #ef4444;
-}
-
-.sentiment-overview .neutral {
-  color: #6c757d;
-}
-
-.sentiment-chart, .wordcloud-container {
-  margin-top: 1.5rem;
-  background: var(--background);
-  padding: 1rem;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-/* End Sentiment Analysis Styles */
 
 @layer components {
-  /* Book Reader Styles */
   .reader-content {
     max-width: 65ch;
     margin: 0 auto;
-    font-family: "Times New Roman", Times, serif;
+    @apply font-serif;
   }
-  
+
   .reader-content p {
     text-indent: 1.5em;
-    margin-bottom: 1.5em;
-    letter-spacing: 0.01em;
+    margin-bottom: 0.9em;
   }
-  
-  .reader-content p:first-of-type::first-letter {
-    font-size: 1.2em;
-    font-weight: 500;
-  }
-  
-  .reader-content h1, 
-  .reader-content h2, 
+
+  .reader-content h1,
+  .reader-content h2,
   .reader-content h3 {
     text-align: center;
-    font-family: var(--font-serif-reading, Georgia, serif);
     margin-top: 2.5em;
     margin-bottom: 1.5em;
   }
-  
+
   .reader-content blockquote {
     font-style: italic;
     margin: 2em 0;
@@ -190,16 +104,33 @@
     border-left-width: 4px;
     border-color: hsl(var(--primary) / 0.3);
   }
-  
+
   .reader-content hr {
     margin: 2em auto;
     width: 50%;
     border-color: hsl(var(--primary) / 0.2);
   }
-  
+
   .reader-content a {
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 2px;
+  }
+
+  /* A cloth-bound spine for books without a cover image. */
+  .typeset-cover {
+    background:
+      linear-gradient(90deg, hsl(0 0% 0% / 0.18) 0, hsl(0 0% 0% / 0) 12%),
+      hsl(var(--cover-hue, 14) 45% 28%);
+    color: hsl(40 45% 94%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

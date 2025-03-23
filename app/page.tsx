@@ -1,186 +1,81 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useEffect, useState } from "react"
+import Link from "next/link"
 import { SearchBar } from "@/components/SearchBar"
-import { DarkModeToggle } from "@/components/DarkModeToggle"
-import { BookGrid } from "../components/BookGrid"
-import { Search, X } from "lucide-react"
+import { SiteHeader } from "@/components/SiteHeader"
+import { BookGrid } from "@/components/BookGrid"
+import { loadRecentBooks, type RecentBook } from "@/lib/recent-books"
 
-interface RecentBook {
-  id: string
-  title: string
-  author: string
-  coverUrl: string | null
-  readingEaseScore: number | null
-}
+const STARTING_POINTS = [
+  { id: "1342", title: "Pride and Prejudice" },
+  { id: "84", title: "Frankenstein" },
+  { id: "11", title: "Alice’s Adventures in Wonderland" },
+  { id: "2701", title: "Moby Dick" },
+]
 
 export default function Home() {
-  const [searchVisible, setSearchVisible] = useState(false)
-  const [recentBooks, setRecentBooks] = useState<RecentBook[]>([])
+  const [recentBooks, setRecentBooks] = useState<RecentBook[] | null>(null)
 
-  useEffect(() => {
-    // Load recently viewed books from localStorage
-    const savedBooks = localStorage.getItem('recentBooks')
-    if (savedBooks) {
-      setRecentBooks(JSON.parse(savedBooks))
-    }
-  }, [])
-
-  const toggleSearch = () => {
-    setSearchVisible((prev) => !prev)
-  }
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.3,
-      },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  }
+  useEffect(() => setRecentBooks(loadRecentBooks()), [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/90 to-secondary/30">
-      {/* Header */}
-      <motion.div
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ type: "spring", stiffness: 100, damping: 15 }}
-        className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b shadow-sm"
-      >
-        <div className="container mx-auto px-4 h-16 flex items-center">
-          {/* Left: Title */}
-          <div className="flex-shrink-0">
-            <motion.h1
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2, type: "spring" }}
-              className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70"
-            >
-              Project Gutenberg Explorer
-            </motion.h1>
-          </div>
-          {/* Right: Dark Mode Toggle Only */}
-          <div className="flex-shrink-0 ml-auto">
-            <DarkModeToggle />
-          </div>
-        </div>
-      </motion.div>
+    <div className="flex min-h-screen flex-col">
+      <SiteHeader />
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 pt-28 pb-16">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="max-w-4xl mx-auto mb-16 text-center"
-        >
-          <motion.h2 variants={itemVariants} className="text-4xl font-serif-reading font-bold mb-4">
-            Discover Classic Literature
-          </motion.h2>
-          <motion.p variants={itemVariants} className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Explore thousands of free books from the world’s greatest authors
-          </motion.p>
-
-          {/* Animated Glowing Search Icon / Search Bar */}
-          <AnimatePresence mode="wait">
-            {searchVisible ? (
-              <motion.div
-                key="searchBar"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 350, damping: 20 }}
-                className="w-full max-w-md mx-auto relative"
-              >
-                <SearchBar />
-                {/* Close Button */}
-                <motion.button
-                  onClick={toggleSearch}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="absolute -top-3 -right-3 p-2 bg-white rounded-full shadow-md"
-                  aria-label="Close search"
-                >
-                  <X className="h-5 w-5 text-primary" />
-                </motion.button>
-              </motion.div>
-            ) : (
-              <motion.button
-                key="searchIcon"
-                onClick={toggleSearch}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="mx-auto flex items-center justify-center p-4 rounded-full bg-primary/10 text-primary shadow-lg"
-                style={{ animation: "glowShift 2s ease-in-out infinite" }}
-                aria-label="Open search"
-              >
-                <Search className="h-8 w-8" />
-              </motion.button>
-            )}
-          </AnimatePresence>
-        </motion.div>
-
-        <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, type: "spring" }}
-          className="mb-16"
-        >
-          <div className="flex items-center justify-between mb-8">
-            <motion.h2
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.7 }}
-              className="text-2xl font-serif-reading font-semibold"
-            >
-              Recently Viewed
-            </motion.h2>
-            {recentBooks.length > 0 && (
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.8 }}>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="text-sm font-medium text-primary hover:underline"
-                >
-                  View all
-                </motion.button>
-              </motion.div>
-            )}
+      <main id="main" className="container mx-auto flex-1 px-4 pb-20">
+        <section className="grid gap-10 py-12 md:grid-cols-[1.2fr_1fr] md:items-end md:py-20">
+          <div>
+            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-secondary">
+              Project Gutenberg, read closely
+            </p>
+            <h1 className="font-serif text-4xl font-semibold leading-tight md:text-5xl">
+              Open any public-domain book in Project Gutenberg by its number.
+            </h1>
+            <p className="mt-5 max-w-xl text-lg text-muted-foreground">
+              Read it page by page, ask questions answered from its own text, and see its Flesch
+              reading ease, tone and most frequent words.
+            </p>
           </div>
-          {recentBooks.length > 0 ? (
+
+          <div className="rounded-lg border bg-card p-6 shadow-sm">
+            <SearchBar />
+            <p className="mt-2 text-sm text-muted-foreground">Or start with</p>
+            <ul className="mt-2 flex flex-wrap gap-2">
+              {STARTING_POINTS.map((book) => (
+                <li key={book.id}>
+                  <Link
+                    href={`/book/${book.id}`}
+                    className="inline-block rounded-full border px-3 py-1 text-sm transition-colors hover:border-primary hover:text-primary"
+                  >
+                    {book.title} <span className="text-muted-foreground">#{book.id}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section aria-labelledby="recent-heading" className="border-t pt-10">
+          <h2 id="recent-heading" className="mb-6 font-serif text-2xl font-semibold">
+            Your shelf
+          </h2>
+          {recentBooks === null ? null : recentBooks.length > 0 ? (
             <BookGrid books={recentBooks} />
           ) : (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center text-muted-foreground"
-            >
-              No recently viewed books yet. Start exploring!
-            </motion.p>
+            <p className="max-w-md text-muted-foreground">
+              Books you open appear here, newest first. Nothing is stored beyond this browser.
+            </p>
           )}
-        </motion.section>
+        </section>
       </main>
 
-      <motion.footer
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2 }}
-        className="border-t py-6 bg-background/50 backdrop-blur-sm"
-      >
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Project Gutenberg Explorer. All books are in the public domain.</p>
+      <footer className="border-t py-6">
+        <div className="container mx-auto px-4 text-sm text-muted-foreground">
+          Texts and metadata come from Project Gutenberg. The books are in the public domain in the
+          United States.
         </div>
-      </motion.footer>
+      </footer>
     </div>
   )
 }

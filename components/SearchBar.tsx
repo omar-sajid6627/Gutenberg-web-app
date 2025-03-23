@@ -1,115 +1,91 @@
 "use client"
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowRight, Loader2, Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { fetchBookById, type BookSummary } from '@/app/services/api';
-import Link from 'next/link';
 import { useDebounce } from '@/app/hooks/useDebounce';
+import { displayAuthor } from '@/lib/recent-books';
 
+type Lookup =
+  | { kind: 'idle' }
+  | { kind: 'invalid' }
+  | { kind: 'loading' }
+  | { kind: 'found'; book: BookSummary }
+  | { kind: 'missing'; id: string };
+
+/**
+ * Finds a book by its Project Gutenberg ebook number. The backend has no
+ * title search, so the field says so rather than pretending to search.
+ */
 export function SearchBar() {
+  const router = useRouter();
   const [query, setQuery] = useState('');
-  const [isFocused, setIsFocused] = useState(false);
-  const [results, setResults] = useState<BookSummary[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  const debouncedQuery = useDebounce(query, 500);
+  const [lookup, setLookup] = useState<Lookup>({ kind: 'idle' });
+  const debouncedQuery = useDebounce(query.trim(), 400);
 
   useEffect(() => {
-    async function performSearch() {
-      // Reset results if query is empty or too short
-      if (!debouncedQuery.trim()) {
-        setResults([]);
-        return;
-      }
+    if (!debouncedQuery) return setLookup({ kind: 'idle' });
+    if (!/^\d+$/.test(debouncedQuery)) return setLookup({ kind: 'invalid' });
 
-      // Only proceed if the query is a numeric ID
-      if (!/^\d+$/.test(debouncedQuery)) {
-        setError("Please enter a numeric book ID");
-        setResults([]);
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        // Search by ID only
-        const book = await fetchBookById(debouncedQuery);
-        setResults([book]); // Put the book in an array for consistent rendering
-      } catch (err) {
-        console.error('Search error:', err);
-        setError(`No book found with ID: ${debouncedQuery}`);
-        setResults([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    performSearch();
+    let cancelled = false;
+    setLookup({ kind: 'loading' });
+    fetchBookById(debouncedQuery)
+      .then((book) => !cancelled && setLookup({ kind: 'found', book }))
+      .catch(() => !cancelled && setLookup({ kind: 'missing', id: debouncedQuery }));
+    return () => {
+      cancelled = true;
+    };
   }, [debouncedQuery]);
 
-  return (
-    <div className="relative">
-      <motion.div
-        initial={false}
-        animate={{
-          scale: isFocused ? 1.02 : 1,
-          boxShadow: isFocused 
-            ? '0 8px 30px rgba(0,0,0,0.12)' 
-            : '0 2px 8px rgba(0,0,0,0.05)',
-        }}
-        className="relative flex items-center"
-      >
-        <Search className="absolute left-4 w-5 h-5 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="Search by book ID (e.g. 1342 for Pride and Prejudice)..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-          className="w-full pl-12 pr-4 h-12 text-lg bg-card border-2 focus:border-primary transition-colors"
-        />
-      </motion.div>
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const id = query.trim();
+    if (/^\d+$/.test(id)) router.push(`/book/${id}`);
+    else setLookup({ kind: 'invalid' });
+  };
 
-      <AnimatePresence>
-        {isFocused && query.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute top-full left-0 right-0 mt-2 p-2 bg-card rounded-lg border shadow-lg z-50 max-h-[400px] overflow-auto"
-          >
-            {isLoading ? (
-              <div className="text-sm p-3 text-center">
-                <div className="animate-pulse">Searching...</div>
-              </div>
-            ) : error ? (
-              <div className="text-sm p-3 text-red-500">{error}</div>
-            ) : results.length > 0 ? (
-              <div className="space-y-2">
-                {results.map((book) => (
-                  <Link 
-                    key={book.id} 
-                    href={`/book/${book.id}`}
-                    className="block p-2 hover:bg-muted rounded-md transition-colors"
-                  >
-                    <div className="font-medium">{book.title}</div>
-                    <div className="text-sm text-muted-foreground">{book.author}</div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="text-sm p-3 text-muted-foreground">
-                Enter a valid book ID to search
-              </div>
-            )}
-          </motion.div>
+  return (
+    <form onSubmit={handleSubmit} role="search" className="w-full">
+      <label htmlFor="book-id" className="mb-2 block text-sm font-medium">
+        Gutenberg ebook number
+      </label>
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Input
+            id="book-id"
+            inputMode="numeric"
+            autoComplete="off"
+            placeholder="1342"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-describedby="book-id-status"
+            className="h-12 bg-card pl-10 text-lg"
+          />
+        </div>
+        <Button type="submit" size="lg" className="h-12 gap-2">
+          Open
+          <ArrowRight className="h-4 w-4" aria-hidden />
+        </Button>
+      </div>
+      <div id="book-id-status" aria-live="polite" className="mt-2 min-h-[1.5rem] text-sm">
+        {lookup.kind === 'invalid' && <p className="text-destructive">Ebook numbers are digits only, like 1342.</p>}
+        {lookup.kind === 'loading' && (
+          <p className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Looking it up…
+          </p>
         )}
-      </AnimatePresence>
-    </div>
+        {lookup.kind === 'found' && (
+          <p className="text-muted-foreground">
+            <span className="font-serif font-semibold text-foreground">{lookup.book.title}</span> by{' '}
+            {displayAuthor(lookup.book.author)}
+          </p>
+        )}
+        {lookup.kind === 'missing' && <p className="text-muted-foreground">No book found under {lookup.id}.</p>}
+      </div>
+    </form>
   );
 }

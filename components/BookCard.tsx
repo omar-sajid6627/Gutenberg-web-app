@@ -1,41 +1,19 @@
-"use client"
-
-import { motion } from 'framer-motion';
 import Link from 'next/link';
-import Image from 'next/image';
-import { Card } from '@/components/ui/card';
+import { BookCover } from '@/components/BookCover';
+import { displayAuthor, type RecentBook } from '@/lib/recent-books';
 
-interface BookCardProps {
-  title: string;
-  author: string;
-  coverUrl: string | null;
-  id: string;
-}
-
-export function BookCard({ title, author, coverUrl, id }: BookCardProps) {
+export function BookCard({ id, title, author, coverUrl }: RecentBook) {
   return (
-    <Link href={`/book/${id}`}>
-      <div className="group relative overflow-hidden rounded-lg border bg-background p-2 hover:shadow-lg transition-shadow">
-        <div className="aspect-[2/3] relative overflow-hidden rounded-md bg-muted">
-          {coverUrl ? (
-            <Image
-              src={coverUrl}
-              alt={title}
-              fill
-              className="object-contain"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <span className="text-muted-foreground">No cover</span>
-            </div>
-          )}
-        </div>
-        <div className="mt-4 space-y-1">
-          <h3 className="font-semibold leading-none tracking-tight">{title}</h3>
-          <p className="text-sm text-muted-foreground">{author}</p>
-        </div>
-      </div>
+    <Link href={`/book/${id}`} className="group block rounded-md focus-visible:ring-2 focus-visible:ring-ring">
+      <BookCover
+        id={id}
+        title={title}
+        author={author}
+        coverUrl={coverUrl}
+        className="transition-transform duration-200 group-hover:-translate-y-1"
+      />
+      <p className="mt-3 line-clamp-2 font-serif font-semibold leading-snug group-hover:text-primary">{title}</p>
+      <p className="text-sm text-muted-foreground">{displayAuthor(author)}</p>
     </Link>
   );
 }

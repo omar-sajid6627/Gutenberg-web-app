@@ -37,9 +37,9 @@ export function reflowPlainText(text: string): string {
 }
 
 const markdownComponents: Components = {
-  h1: ({ node, ...props }) => <h1 className="text-3xl font-serif-reading font-bold mb-6 mt-8" {...props} />,
-  h2: ({ node, ...props }) => <h2 className="text-2xl font-serif-reading font-semibold mb-4 mt-6" {...props} />,
-  h3: ({ node, ...props }) => <h3 className="text-xl font-serif-reading font-medium mb-3 mt-5" {...props} />,
+  h1: ({ node, ...props }) => <h1 className="text-3xl font-serif font-bold mb-6 mt-8" {...props} />,
+  h2: ({ node, ...props }) => <h2 className="text-2xl font-serif font-semibold mb-4 mt-6" {...props} />,
+  h3: ({ node, ...props }) => <h3 className="text-xl font-serif font-medium mb-3 mt-5" {...props} />,
   p: ({ node, ...props }) => <p className="mb-4 text-foreground/90" {...props} />,
   a: ({ node, ...props }) => <a className="text-primary hover:text-primary/80 underline transition-colors" {...props} />,
   blockquote: ({ node, ...props }) => (

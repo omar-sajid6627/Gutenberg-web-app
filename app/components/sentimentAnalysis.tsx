@@ -64,7 +64,7 @@ function PanelStatus({ state, onRetry }: PanelProps) {
 export function SentimentOverview({ state, onRetry }: PanelProps) {
   return (
     <section aria-labelledby="sentiment-heading" className="rounded-lg border bg-card p-6">
-      <h2 id="sentiment-heading" className="mb-4 font-serif-reading text-xl font-semibold">
+      <h2 id="sentiment-heading" className="mb-4 font-serif text-xl font-semibold">
         Sentiment
       </h2>
       {state.kind !== "ready" ? (
@@ -119,7 +119,7 @@ export function WordCloudPanel({ state, onRetry }: PanelProps) {
 
   return (
     <section aria-labelledby="wordcloud-heading" className="rounded-lg border bg-card p-6">
-      <h2 id="wordcloud-heading" className="mb-4 font-serif-reading text-xl font-semibold">
+      <h2 id="wordcloud-heading" className="mb-4 font-serif text-xl font-semibold">
         Most frequent words
       </h2>
       {state.kind !== "ready" ? (

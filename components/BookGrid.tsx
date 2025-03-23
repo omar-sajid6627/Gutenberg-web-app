@@ -1,29 +1,14 @@
-import { motion } from 'framer-motion';
 import { BookCard } from './BookCard';
-import { FeaturedBook } from '@/app/data/featured-books';
+import type { RecentBook } from '@/lib/recent-books';
 
-interface BookGridProps {
-  books: FeaturedBook[];
-}
-
-export function BookGrid({ books }: BookGridProps) {
+export function BookGrid({ books }: { books: RecentBook[] }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {books.map((book, index) => (
-        <motion.div
-          key={book.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
-        >
-          <BookCard
-            title={book.title}
-            author={book.author}
-            coverUrl={book.coverUrl}
-            id={book.id}
-          />
-        </motion.div>
+    <ul className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-6">
+      {books.map((book) => (
+        <li key={book.id}>
+          <BookCard {...book} />
+        </li>
       ))}
-    </div>
+    </ul>
   );
-} 
+}
