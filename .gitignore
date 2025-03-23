@@ -45,8 +45,6 @@ next-env.d.ts
 env.ts
 env.d.ts
 
-# scratch output of scripts/preview-readme.sh
-README.preview.html
 
 # no CI in this repository
 .github/
