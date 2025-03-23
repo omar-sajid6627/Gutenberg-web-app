@@ -1,0 +1,97 @@
+{
+  "book": {
+    "id": "11",
+    "title": "Alice's Adventures in Wonderland",
+    "author": "Carroll, Lewis, 1832-1898",
+    "language": "English",
+    "category": "Alice (Fictitious character from Carroll) -- Juvenile fiction, Children's stories, Fantasy fiction, Imaginary places -- Juvenile fiction",
+    "ebook_no": "11",
+    "release_date": "Jun 27, 2008",
+    "summary": "Alice follows a white rabbit down a hole into a world of shifting sizes, mad tea parties and a card-playing queen with a fondness for executions.",
+    "cover_url": null,
+    "downloads": 27493,
+    "reading_ease_score": null
+  },
+  "readability": {
+    "book_id": "11",
+    "reading_ease_score": 78.9
+  },
+  "content": {
+    "pages": [
+      "CHAPTER I. Down the Rabbit-Hole\n\nAlice was beginning to get very tired of sitting by her sister on the\nbank, and of having nothing to do: once or twice she had peeped into\nthe book her sister was reading, but it had no pictures or\nconversations in it, “and what is the use of a book,” thought Alice\n“without pictures or conversations?”"
+    ],
+    "total_pages": 1
+  },
+  "sentiment": {
+    "book_id": "11",
+    "sentiment": {
+      "positive": 0.44,
+      "neutral": 0.31,
+      "negative": 0.25,
+      "overall": "positive",
+      "compound": 0.88
+    },
+    "overall_sentiment": "positive",
+    "wordcloud_data": {
+      "words": [
+        {
+          "text": "alice",
+          "value": 398
+        },
+        {
+          "text": "queen",
+          "value": 75
+        },
+        {
+          "text": "thought",
+          "value": 74
+        },
+        {
+          "text": "time",
+          "value": 71
+        },
+        {
+          "text": "king",
+          "value": 63
+        },
+        {
+          "text": "turtle",
+          "value": 59
+        },
+        {
+          "text": "began",
+          "value": 58
+        },
+        {
+          "text": "hatter",
+          "value": 56
+        },
+        {
+          "text": "mock",
+          "value": 56
+        },
+        {
+          "text": "gryphon",
+          "value": 55
+        },
+        {
+          "text": "rabbit",
+          "value": 51
+        },
+        {
+          "text": "head",
+          "value": 50
+        },
+        {
+          "text": "voice",
+          "value": 48
+        },
+        {
+          "text": "mouse",
+          "value": 44
+        }
+      ]
+    },
+    "status": "completed"
+  }
+}

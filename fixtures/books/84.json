@@ -1,0 +1,97 @@
+{
+  "book": {
+    "id": "84",
+    "title": "Frankenstein; Or, The Modern Prometheus",
+    "author": "Shelley, Mary Wollstonecraft, 1797-1851",
+    "language": "English",
+    "category": "Frankenstein's monster (Fictitious character) -- Fiction, Frankenstein, Victor (Fictitious character) -- Fiction, Gothic fiction, Horror tales, Monsters -- Fiction, Science fiction, Scientists -- Fiction",
+    "ebook_no": "84",
+    "release_date": "Oct 1, 1993",
+    "summary": "Told through the letters of an Arctic explorer, the story of Victor Frankenstein, who builds and animates a living being and then abandons it, and of the creature's search for companionship and revenge.",
+    "cover_url": null,
+    "downloads": 93311,
+    "reading_ease_score": null
+  },
+  "readability": {
+    "book_id": "84",
+    "reading_ease_score": 54.3
+  },
+  "content": {
+    "pages": [
+      "Letter 1\n\n_To Mrs. Saville, England._\n\nSt. Petersburgh, Dec. 11th, 17—.\n\nYou will rejoice to hear that no disaster has accompanied the\ncommencement of an enterprise which you have regarded with such evil\nforebodings. I arrived here yesterday, and my first task is to assure\nmy dear sister of my welfare and increasing confidence in the success\nof my undertaking."
+    ],
+    "total_pages": 1
+  },
+  "sentiment": {
+    "book_id": "84",
+    "sentiment": {
+      "positive": 0.39,
+      "neutral": 0.18,
+      "negative": 0.43,
+      "overall": "negative",
+      "compound": -0.92
+    },
+    "overall_sentiment": "negative",
+    "wordcloud_data": {
+      "words": [
+        {
+          "text": "father",
+          "value": 120
+        },
+        {
+          "text": "life",
+          "value": 114
+        },
+        {
+          "text": "eyes",
+          "value": 104
+        },
+        {
+          "text": "night",
+          "value": 98
+        },
+        {
+          "text": "time",
+          "value": 96
+        },
+        {
+          "text": "elizabeth",
+          "value": 92
+        },
+        {
+          "text": "death",
+          "value": 80
+        },
+        {
+          "text": "friend",
+          "value": 78
+        },
+        {
+          "text": "misery",
+          "value": 64
+        },
+        {
+          "text": "creature",
+          "value": 60
+        },
+        {
+          "text": "heart",
+          "value": 58
+        },
+        {
+          "text": "clerval",
+          "value": 58
+        },
+        {
+          "text": "justine",
+          "value": 56
+        },
+        {
+          "text": "despair",
+          "value": 45
+        }
+      ]
+    },
+    "status": "completed"
+  }
+}

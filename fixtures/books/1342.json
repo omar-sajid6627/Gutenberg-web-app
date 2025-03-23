@@ -1,0 +1,142 @@
+{
+  "book": {
+    "id": "1342",
+    "title": "Pride and Prejudice",
+    "author": "Austen, Jane, 1775-1817",
+    "language": "English",
+    "category": "Courtship -- Fiction, Domestic fiction, England -- Fiction, Love stories, Sisters -- Fiction, Social classes -- Fiction, Young women -- Fiction",
+    "ebook_no": "1342",
+    "release_date": "Jun 1, 1998",
+    "summary": "The Bennet family has five daughters and no son, so their estate will pass to a cousin. When the wealthy Mr. Bingley rents Netherfield Park nearby, Mrs. Bennet sets out to marry her daughters well, and Elizabeth, the second eldest, takes an immediate dislike to Bingley's proud friend Mr. Darcy.",
+    "cover_url": null,
+    "downloads": 58617,
+    "reading_ease_score": null
+  },
+  "readability": {
+    "book_id": "1342",
+    "reading_ease_score": 64.8
+  },
+  "content": {
+    "pages": [
+      "CHAPTER I.\n\nIt is a truth universally acknowledged, that a single man in\npossession of a good fortune, must be in want of a wife.\n\nHowever little known the feelings or views of such a man may be on his\nfirst entering a neighbourhood, this truth is so well fixed in the\nminds of the surrounding families, that he is considered the rightful\nproperty of some one or other of their daughters.\n\n“My dear Mr. Bennet,” said his lady to him one day, “have you heard\nthat Netherfield Park is let at last?”\n\nMr. Bennet replied that he had not.\n\n“But it is,” returned she; “for Mrs. Long has just been here, and she\ntold me all about it.”\n\nMr. Bennet made no answer.\n\n“Do you not want to know who has taken it?” cried his wife\nimpatiently.\n\n“_You_ want to tell me, and I have no objection to hearing it.”\n\nThis was invitation enough.",
+      "“Why, my dear, you must know, Mrs. Long says that Netherfield is taken\nby a young man of large fortune from the north of England; that he\ncame down on Monday in a chaise and four to see the place, and was so\nmuch delighted with it, that he agreed with Mr. Morris immediately;\nthat he is to take possession before Michaelmas, and some of his\nservants are to be in the house by the end of next week.”\n\n“What is his name?”\n\n“Bingley.”\n\n“Is he married or single?”\n\n“Oh! Single, my dear, to be sure! A single man of large fortune; four\nor five thousand a year. What a fine thing for our girls!”"
+    ],
+    "total_pages": 2
+  },
+  "sentiment": {
+    "book_id": "1342",
+    "sentiment": {
+      "positive": 0.62,
+      "neutral": 0.21,
+      "negative": 0.17,
+      "overall": "positive",
+      "compound": 0.97
+    },
+    "overall_sentiment": "positive",
+    "wordcloud_data": {
+      "words": [
+        {
+          "text": "elizabeth",
+          "value": 635
+        },
+        {
+          "text": "darcy",
+          "value": 418
+        },
+        {
+          "text": "bennet",
+          "value": 323
+        },
+        {
+          "text": "miss",
+          "value": 283
+        },
+        {
+          "text": "jane",
+          "value": 264
+        },
+        {
+          "text": "bingley",
+          "value": 257
+        },
+        {
+          "text": "sister",
+          "value": 218
+        },
+        {
+          "text": "lady",
+          "value": 183
+        },
+        {
+          "text": "time",
+          "value": 176
+        },
+        {
+          "text": "mother",
+          "value": 151
+        },
+        {
+          "text": "family",
+          "value": 132
+        },
+        {
+          "text": "wickham",
+          "value": 162
+        },
+        {
+          "text": "collins",
+          "value": 156
+        },
+        {
+          "text": "dear",
+          "value": 146
+        },
+        {
+          "text": "happy",
+          "value": 101
+        },
+        {
+          "text": "letter",
+          "value": 97
+        },
+        {
+          "text": "pleasure",
+          "value": 95
+        },
+        {
+          "text": "young",
+          "value": 92
+        },
+        {
+          "text": "longbourn",
+          "value": 88
+        },
+        {
+          "text": "netherfield",
+          "value": 71
+        },
+        {
+          "text": "manner",
+          "value": 68
+        },
+        {
+          "text": "friend",
+          "value": 66
+        },
+        {
+          "text": "marriage",
+          "value": 64
+        },
+        {
+          "text": "fortune",
+          "value": 48
+        },
+        {
+          "text": "pemberley",
+          "value": 40
+        }
+      ]
+    },
+    "status": "completed"
+  }
+}

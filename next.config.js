@@ -4,6 +4,7 @@ const nextConfig = {
   output: 'standalone',
   eslint: {
     ignoreDuringBuilds: true,
+    dirs: ['app', 'components', 'lib', 'tests'],
   },
   images: {
     remotePatterns: [{ protocol: 'https', hostname: 'www.gutenberg.org' }],
