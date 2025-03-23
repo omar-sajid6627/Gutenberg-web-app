@@ -8,8 +8,8 @@ import Link from "next/link"
 import Image from "next/image"
 import { BookChat } from "../../components/BookChat"
 import { useEffect, useState } from "react"
-import { TriggerBookEmbeddings } from "../../components/TriggerBookEmbeddings"
-import { SentimentAnalysis } from "@/app/components/sentimentAnalysis"
+import { SentimentOverview, WordCloudPanel } from "@/app/components/sentimentAnalysis"
+import { useSentiment } from "@/app/hooks/useSentiment"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { readingEaseBand, type BookView } from "@/lib/books"
 
@@ -450,7 +450,7 @@ export function BookDetails({ book }: BookDetailsProps) {
   const [generatedSummary, setGeneratedSummary] = useState<string | null>(null)
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false)
   const [summaryError, setSummaryError] = useState<string | null>(null)
-  const [sentimentError, setSentimentError] = useState<string | null>(null)
+  const sentiment = useSentiment(book.id)
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false)
   
   // Function to toggle summary expansion
@@ -461,12 +461,6 @@ export function BookDetails({ book }: BookDetailsProps) {
   // Function to check if summary needs to be regenerated
   const needsSummaryGeneration = () => {
     return !book.summary || book.summary === 'N/A' || book.summary.trim() === '';
-  }
-  
-  // Function to handle sentiment analysis errors
-  const handleSentimentError = (error: string) => {
-    console.log("Sentiment analysis error:", error);
-    setSentimentError(error);
   }
   
   // Function to truncate text with proper word boundaries
@@ -937,15 +931,7 @@ export function BookDetails({ book }: BookDetailsProps) {
                 </div>
               </motion.div>
               
-              {/* Word Cloud (Desktop only) - Hidden if there's a sentiment error */}
-              {!sentimentError && (
-                <motion.div 
-                  variants={itemVariants}
-                  className="hidden md:block"
-                >
-                  <SentimentAnalysis bookId={book.id} wordCloudOnly={true} onError={setSentimentError} />
-                </motion.div>
-              )}
+              <WordCloudPanel state={sentiment.state} onRetry={sentiment.reload} />
             </div>
             
             {/* Right Column (Book details, summary, sentiment analysis without word cloud) */}
@@ -1011,22 +997,7 @@ export function BookDetails({ book }: BookDetailsProps) {
                 keywords={book.keywords || {}}
               />
               
-              {/* Word Cloud (Mobile only) - Hidden if there's a sentiment error */}
-              {!sentimentError && (
-                <motion.div 
-                  variants={itemVariants}
-                  className="md:hidden"
-                >
-                  <SentimentAnalysis bookId={book.id} wordCloudOnly={true} onError={setSentimentError} />
-                </motion.div>
-              )}
-              
-              {/* Sentiment Analysis without word cloud - Hidden if there's a sentiment error */}
-              {!sentimentError && (
-                <motion.div variants={itemVariants}>
-                  <SentimentAnalysis bookId={book.id} hideWordCloud={true} onError={setSentimentError} />
-                </motion.div>
-              )}
+              <SentimentOverview state={sentiment.state} onRetry={sentiment.reload} />
               
               {/* Book Details */}
               <motion.div className="space-y-6" variants={itemVariants}>
