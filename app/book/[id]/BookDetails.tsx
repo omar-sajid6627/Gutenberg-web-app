@@ -11,29 +11,13 @@ import { useEffect, useState } from "react"
 import { TriggerBookEmbeddings } from "../../components/TriggerBookEmbeddings"
 import { SentimentAnalysis } from "@/app/components/sentimentAnalysis"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import Head from "next/head"
-
-interface BookDetails {
-  id: string
-  title: string
-  author: string
-  language: string
-  category: string
-  ebookNo: string
-  releaseDate: string
-  summary: string
-  coverUrl: string | null
-  downloads: number
-  readingEaseScore: number | null
-  bookTypes?: string[]
-  keywords?: { [key: string]: string[] }
-}
+import { readingEaseBand, type BookView } from "@/lib/books"
 
 interface BookDetailsProps {
-  book: BookDetails
+  book: BookView
 }
 
-const ReadingEaseScore = ({ score, isEstimated = false }: { score: number | null; isEstimated?: boolean }) => {
+const ReadingEaseScore = ({ score }: { score: number | null }) => {
   // A null score means the backend could not measure readability for this book
   // — too little text, or the content failed to download. Say so, rather than
   // rendering a dial for a number that does not exist. The comment that used
@@ -50,19 +34,10 @@ const ReadingEaseScore = ({ score, isEstimated = false }: { score: number | null
 
   const actualScore = score
 
-  // Calculate color based on score
   const getColor = (score: number) => {
-    if (score >= 90) return "#22c55e" // green
-    if (score >= 70) return "#3b82f6" // blue
-    if (score >= 50) return "#f59e0b" // yellow
-    return "#ef4444" // red
-  }
-
-  const getDifficulty = (score: number) => {
-    if (score >= 90) return "Very Easy"
-    if (score >= 70) return "Easy"
-    if (score >= 50) return "Moderate"
-    return "Difficult"
+    if (score >= 70) return "#22c55e"
+    if (score >= 50) return "#f59e0b"
+    return "#ef4444"
   }
 
   const circumference = 2 * Math.PI * 45
@@ -120,7 +95,7 @@ const ReadingEaseScore = ({ score, isEstimated = false }: { score: number | null
     },
   }
 
-  const difficulty = getDifficulty(actualScore)
+  const band = readingEaseBand(actualScore)
   const color = getColor(actualScore)
 
   return (
@@ -217,7 +192,7 @@ const ReadingEaseScore = ({ score, isEstimated = false }: { score: number | null
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.7, duration: 0.5 }}
       >
-        {difficulty}
+        {band.label}
       </motion.div>
 
       <motion.div
@@ -226,25 +201,9 @@ const ReadingEaseScore = ({ score, isEstimated = false }: { score: number | null
         animate={{ opacity: 0.8 }}
         transition={{ delay: 2, duration: 0.5 }}
       >
-        {actualScore >= 90
-          ? "Very accessible reading for all ages"
-          : actualScore >= 70
-            ? "Easily understood by most readers"
-            : actualScore >= 50
-              ? "Moderate difficulty, requires some focus"
-              : "Complex text requiring careful reading"}
+        {band.description}
       </motion.div>
 
-      {isEstimated && (
-        <motion.div
-          className="text-xs text-muted-foreground italic"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.6 }}
-          transition={{ delay: 2.2, duration: 0.5 }}
-        >
-          (Estimated score)
-        </motion.div>
-      )}
     </motion.div>
   )
 }
@@ -488,7 +447,6 @@ const GenresAndKeywords = ({
 }
 
 export function BookDetails({ book }: BookDetailsProps) {
-  const [isScoreEstimated, setIsScoreEstimated] = useState(false)
   const [generatedSummary, setGeneratedSummary] = useState<string | null>(null)
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false)
   const [summaryError, setSummaryError] = useState<string | null>(null)
@@ -651,12 +609,6 @@ export function BookDetails({ book }: BookDetailsProps) {
     );
   };
   
-  useEffect(() => {
-    if (book.readingEaseScore === null) {
-      setIsScoreEstimated(true)
-    }
-  }, [book.readingEaseScore])
-
   // Save book to recently viewed when component mounts
   useEffect(() => {
     const saveToRecent = () => {
@@ -680,13 +632,6 @@ export function BookDetails({ book }: BookDetailsProps) {
 
     saveToRecent()
   }, [book])
-
-  // The reading-ease score, or null when the backend could not measure it.
-  //
-  // This used to fabricate a value by hashing the book ID
-  // (`50 + hashNum % 51`) whenever the real score was missing, and display it
-  // exactly like a measurement. A reader had no way to tell the difference.
-  const getConsistentRandomScore = () => book.readingEaseScore
 
   // Function to handle book downloads
   const handleDownload = (format: string) => {
@@ -841,10 +786,6 @@ export function BookDetails({ book }: BookDetailsProps) {
 
   return (
     <>
-      <Head>
-        <title>{book.title}</title>
-        <meta name="description" content={book.summary || `Read ${book.title} by ${book.author}`} />
-      </Head>
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -976,15 +917,22 @@ export function BookDetails({ book }: BookDetailsProps) {
                 variants={itemVariants}
               >
                 <div className="relative w-[200px] md:w-[280px] lg:w-[320px] overflow-hidden rounded-md shadow-xl transition-shadow duration-300">
-                  <Image
-                    src={(sanitizeUrl(book.coverUrl) as string) || "/placeholder.svg"}
-                    alt={`${book.title} cover`}
-                    width={400}
-                    height={600}
-                    style={{ objectFit: "cover", width: "100%", height: "auto" }}
-                    priority
-                    className="transition-transform duration-500 hover:scale-105"
-                  />
+                  {book.coverUrl ? (
+                    <Image
+                      src={sanitizeUrl(book.coverUrl) as string}
+                      alt={`${book.title} cover`}
+                      width={400}
+                      height={600}
+                      style={{ objectFit: "cover", width: "100%", height: "auto" }}
+                      priority
+                      className="transition-transform duration-500 hover:scale-105"
+                    />
+                  ) : (
+                    <div className="aspect-[2/3] flex flex-col items-center justify-center gap-2 bg-muted p-6 text-center">
+                      <span className="font-serif-reading text-xl font-semibold">{book.title}</span>
+                      <span className="text-sm text-muted-foreground">{book.author}</span>
+                    </div>
+                  )}
                   <div className="absolute inset-0 shadow-inner pointer-events-none"></div>
                 </div>
               </motion.div>
@@ -1055,7 +1003,7 @@ export function BookDetails({ book }: BookDetailsProps) {
               </motion.div>
               
               {/* Reading Score */}
-              <ReadingEaseScore score={book.readingEaseScore} isEstimated={false} />
+              <ReadingEaseScore score={book.readingEaseScore} />
               
               {/* Genres and Keywords */}
               <GenresAndKeywords
