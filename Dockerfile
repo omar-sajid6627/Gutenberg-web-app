@@ -1,24 +1,21 @@
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 WORKDIR /app
 # .npmrc carries legacy-peer-deps, which npm ci needs to resolve
 # react-wordcloud's pre-React-18 peer range.
-COPY package.json package-lock.json* .npmrc ./
-# `npm ci` needs the lockfile to match package.json. The build script used to
-# run `npm install react-day-picker@9.6.4 --no-save` mid-build, which made the
-# build network-dependent and non-reproducible — and the package was already a
-# declared dependency at that version.
-RUN npm ci --include=dev
+COPY package.json package-lock.json .npmrc ./
+RUN npm ci --include=dev --no-audit --no-fund
 
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# NEXT_PUBLIC_* is inlined into the client bundle at build time.
 ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:8600
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
