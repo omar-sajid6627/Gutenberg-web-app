@@ -189,7 +189,7 @@ export function BookChat({ bookId, bookTitle, className }: BookChatProps) {
                 </h3>
               </div>
               <p className="text-blue-100/80 text-xs">
-                Ask me anything about <span className="italic font-medium text-blue-200">"{bookTitle}"</span>
+                Ask me anything about <span className="italic font-medium text-blue-200">“{bookTitle}”</span>
               </p>
 
               {/* Animated arrow */}

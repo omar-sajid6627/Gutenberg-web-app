@@ -87,7 +87,7 @@ export default function Home() {
             Discover Classic Literature
           </motion.h2>
           <motion.p variants={itemVariants} className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Explore thousands of free books from the world's greatest authors
+            Explore thousands of free books from the world’s greatest authors
           </motion.p>
 
           {/* Animated Glowing Search Icon / Search Bar */}

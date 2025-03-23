@@ -609,7 +609,7 @@ export function BookDetails({ book }: BookDetailsProps) {
           <p className="text-muted-foreground leading-relaxed">{summaryText}</p>
           {isAIGenerated && (
             <p className="text-xs text-muted-foreground italic">
-              (This summary was generated using AI and may not perfectly reflect the book's content)
+              (This summary was generated using AI and may not perfectly reflect the book’s content)
             </p>
           )}
         </div>
@@ -644,7 +644,7 @@ export function BookDetails({ book }: BookDetailsProps) {
         
         {isAIGenerated && (
           <p className="text-xs text-muted-foreground italic">
-            (This summary was generated using AI and may not perfectly reflect the book's content)
+            (This summary was generated using AI and may not perfectly reflect the book’s content)
           </p>
         )}
       </div>
