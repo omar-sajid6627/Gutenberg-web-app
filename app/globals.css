@@ -154,3 +154,52 @@
 }
 
 /* End Sentiment Analysis Styles */
+
+@layer components {
+  /* Book Reader Styles */
+  .reader-content {
+    max-width: 65ch;
+    margin: 0 auto;
+    font-family: "Times New Roman", Times, serif;
+  }
+  
+  .reader-content p {
+    text-indent: 1.5em;
+    margin-bottom: 1.5em;
+    letter-spacing: 0.01em;
+  }
+  
+  .reader-content p:first-of-type::first-letter {
+    font-size: 1.2em;
+    font-weight: 500;
+  }
+  
+  .reader-content h1, 
+  .reader-content h2, 
+  .reader-content h3 {
+    text-align: center;
+    font-family: var(--font-serif-reading, Georgia, serif);
+    margin-top: 2.5em;
+    margin-bottom: 1.5em;
+  }
+  
+  .reader-content blockquote {
+    font-style: italic;
+    margin: 2em 0;
+    padding-left: 2em;
+    border-left-width: 4px;
+    border-color: hsl(var(--primary) / 0.3);
+  }
+  
+  .reader-content hr {
+    margin: 2em auto;
+    width: 50%;
+    border-color: hsl(var(--primary) / 0.2);
+  }
+  
+  .reader-content a {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+}

@@ -845,6 +845,121 @@ export function BookDetails({ book }: BookDetailsProps) {
         animate="visible"
         className="min-h-screen bg-background text-foreground overflow-hidden relative"
       >
+        {/* Header */}
+        <motion.header
+          className="fixed top-0 w-full z-50 bg-gradient-to-r from-background/95 via-background/90 to-primary/10 backdrop-blur-md border-b border-primary/20 shadow-sm"
+          variants={headerVariants}
+          initial="initial"
+          animate="animate"
+        >
+          <div className="container mx-auto px-4 h-20 flex items-center justify-between relative">
+            {/* Decorative elements */}
+            <motion.div
+              className="absolute top-0 left-0 w-full h-full opacity-20"
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: [0.1, 0.2, 0.1],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Number.POSITIVE_INFINITY,
+                repeatType: "reverse",
+              }}
+            >
+              <div className="absolute top-1/2 left-1/4 w-32 h-32 rounded-full bg-primary/30 blur-3xl transform -translate-y-1/2" />
+              <div className="absolute top-1/2 right-1/4 w-24 h-24 rounded-full bg-secondary/30 blur-3xl transform -translate-y-1/2" />
+            </motion.div>
+
+            <div className="flex items-center gap-6 z-10">
+              <Link href="/">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative overflow-hidden group bg-background/50 border border-primary/10 rounded-full shadow-sm"
+                >
+                  <motion.div
+                    className="absolute inset-0 bg-primary/20 rounded-full"
+                    initial={{ scale: 0, opacity: 0 }}
+                    whileHover={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  />
+                  <ArrowLeft className="h-5 w-5 relative z-10 group-hover:text-primary transition-colors" />
+                </Button>
+              </Link>
+
+              <div className="flex flex-col">
+                <motion.div
+                  className="flex items-center gap-2"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                  <motion.div
+                    className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center"
+                    initial={{ rotate: -10, scale: 0.8 }}
+                    animate={{ rotate: 0, scale: 1 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 200,
+                      damping: 10,
+                      delay: 0.3,
+                    }}
+                  >
+                    <Book className="h-4 w-4 text-primary" />
+                  </motion.div>
+                  <motion.h1
+                    className="text-2xl font-serif-reading font-bold relative"
+                    initial={{ opacity: 0, x: -5 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4, duration: 0.5 }}
+                  >
+                    Project Gutenberg Explorer
+                  </motion.h1>
+                </motion.div>
+
+                <motion.div
+                  className="h-0.5 bg-gradient-to-r from-primary/80 via-primary/40 to-transparent rounded-full mt-1"
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: "100%", opacity: 1 }}
+                  transition={{ delay: 0.7, duration: 0.8 }}
+                />
+
+                <motion.p
+                  className="text-xs text-muted-foreground mt-1"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.8 }}
+                  transition={{ delay: 0.9, duration: 0.5 }}
+                >
+                  Discover classic literature in the digital age
+                </motion.p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 z-10">
+              <motion.div
+                className="hidden md:flex items-center gap-3 bg-background/50 border border-primary/10 rounded-full px-4 py-1.5 shadow-sm"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+              >
+                <FileText className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">
+                  {book.title.length > 25 ? book.title.substring(0, 25) + "..." : book.title}
+                </span>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.8, duration: 0.3 }}
+                className="bg-background/50 border border-primary/10 rounded-full p-1 shadow-sm"
+              >
+                <DarkModeToggle />
+              </motion.div>
+            </div>
+          </div>
+        </motion.header>
+        
         <main className="container mx-auto px-4 pt-24 pb-16">
           <div className="grid md:grid-cols-[300px_1fr] lg:grid-cols-[350px_1fr] gap-8 md:gap-12">
             {/* Left Column (Book cover + word cloud) */}

@@ -8,6 +8,7 @@ import { useState, useEffect, useRef } from "react"
 import type { Book } from "@/types/book"
 import { useBookContent } from "@/hooks/useBookContent"
 import { BookChat } from "../../../components/BookChat"
+import { MarkdownRenderer } from "@/app/components/MarkdownRenderer"
 
 interface BookReaderProps {
   book: Book
@@ -363,8 +364,32 @@ export function BookReader({ book }: BookReaderProps) {
     audioCacheRef.current = {};
   };
 
+  // Determine the content format for the current page
+  const detectContentFormat = (content: string): 'markdown' | 'html' | 'plaintext' => {
+    if (!content) return 'plaintext';
+    
+    // Check for HTML tags
+    const hasHtmlTags = /<[a-z][\s\S]*>/i.test(content);
+    
+    // Check for markdown syntax
+    const hasMarkdownSyntax = /(\*\*|__|##|>\s|\[.*\]\(.*\))/i.test(content);
+    
+    if (hasHtmlTags) return 'html';
+    if (hasMarkdownSyntax) return 'markdown';
+    return 'plaintext';
+  };
+  
+  // Get content for the current page
+  const currentPageContent = book.content?.[currentPage - 1] || '';
+  const contentFormat = detectContentFormat(currentPageContent);
+
   return (
-    <div className="min-h-screen bg-background" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
+    <motion.div
+      className="min-h-screen bg-background text-foreground overflow-hidden relative"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center justify-between">
@@ -456,54 +481,26 @@ export function BookReader({ book }: BookReaderProps) {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 pb-24">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentPage}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="prose prose-lg dark:prose-invert mx-auto max-w-5xl"
-          >
-            {isLoading ? (
-              <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-                <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-muted-foreground">Loading book content...</p>
-              </div>
-            ) : error ? (
-              <p className="text-center text-red-500">{error}</p>
-            ) : !content ? (
-              <p className="text-center text-muted-foreground">No content available for this book.</p>
-            ) : (
-              // Render paragraphs with improved styling
-              <div className="space-y-6">
-                {currentParagraphs.map((paragraph: string, index: number) => (
-                  <motion.p
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      delay: index * 0.05,
-                      duration: 0.5,
-                      ease: "easeOut",
-                    }}
-                    style={{
-                      fontSize: `${fontSize}px`,
-                      lineHeight: lineHeight,
-                      textIndent: "1.5em",
-                      marginBottom: "1.5em",
-                      letterSpacing: "0.01em",
-                      fontFamily: "'Times New Roman', Times, serif",
-                    }}
-                    className="text-foreground first-letter:text-lg first-letter:font-medium"
-                  >
-                    {paragraph}
-                  </motion.p>
-                ))}
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+        {isLoading ? (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : error ? (
+          <div className="bg-destructive/10 p-6 rounded-xl border border-destructive/20 shadow-lg my-8">
+            <h2 className="text-xl font-medium mb-2 text-destructive">Error Loading Content</h2>
+            <p className="text-muted-foreground">{error}</p>
+          </div>
+        ) : (
+          <div className="my-8">
+            <MarkdownRenderer
+              content={currentPageContent}
+              format={contentFormat}
+              fontSize={fontSize}
+              lineHeight={lineHeight}
+              className="reader-content"
+            />
+          </div>
+        )}
 
         {/* Add BookChat component */}
         <BookChat 
@@ -548,7 +545,7 @@ export function BookReader({ book }: BookReaderProps) {
           </motion.div>
         )}
       </main>
-    </div>
+    </motion.div>
   )
 }
 
