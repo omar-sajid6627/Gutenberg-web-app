@@ -7,6 +7,7 @@ import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
 import type { Book } from "@/types/book"
 import { useBookContent } from "@/hooks/useBookContent"
+import { BookChat } from "../../../components/BookChat"
 
 interface BookReaderProps {
   book: Book
@@ -503,6 +504,13 @@ export function BookReader({ book }: BookReaderProps) {
             )}
           </motion.div>
         </AnimatePresence>
+
+        {/* Add BookChat component */}
+        <BookChat 
+          bookId={book.id} 
+          bookTitle={book.title}
+          className="fixed bottom-24 left-6 z-50" // Position above the pagination controls
+        />
 
         {/* Pagination Controls */}
         {!isLoading && content && (

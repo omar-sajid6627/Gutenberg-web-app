@@ -11,9 +11,10 @@ import { motion, AnimatePresence } from "framer-motion"
 interface BookChatProps {
   bookId: string
   bookTitle: string
+  className?: string
 }
 
-export function BookChat({ bookId, bookTitle }: BookChatProps) {
+export function BookChat({ bookId, bookTitle, className }: BookChatProps) {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([])
   const [input, setInput] = useState("")
@@ -83,7 +84,7 @@ export function BookChat({ bookId, bookTitle }: BookChatProps) {
     <>
       {/* Chat Button */}
       <motion.div
-        className="fixed bottom-6 left-6 z-50"
+        className={cn("z-50", className)}
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{
           scale: 1,
@@ -133,7 +134,10 @@ export function BookChat({ bookId, bookTitle }: BookChatProps) {
       <AnimatePresence>
         {isChatOpen && (
           <motion.div
-            className="fixed bottom-6 left-6 w-[350px] sm:w-[400px] h-[500px] bg-card rounded-2xl shadow-2xl border border-primary/20 overflow-hidden z-50 flex flex-col"
+            className={cn(
+              "w-[350px] sm:w-[400px] h-[500px] bg-card rounded-2xl shadow-2xl border border-primary/20 overflow-hidden z-50 flex flex-col",
+              className ? "fixed bottom-20" : "fixed bottom-6 left-6"
+            )}
             initial={{ opacity: 0, scale: 0.9, y: 20, x: -20 }}
             animate={{
               opacity: 1,
@@ -197,25 +201,25 @@ export function BookChat({ bookId, bookTitle }: BookChatProps) {
                       },
                     }}
                     className={cn(
-                      "flex items-start gap-2 max-w-[90%]",
-                      message.role === "user" ? "ml-auto" : "mr-auto",
+                      "flex items-start gap-3",
+                      message.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto flex-row"
                     )}
                   >
                     {message.role === "assistant" && (
-                      <Avatar className="h-8 w-8 bg-primary/10">
+                      <Avatar className="h-8 w-8 bg-primary/10 flex-shrink-0 flex items-center justify-center">
                         <BookOpen className="h-4 w-4 text-primary" />
                       </Avatar>
                     )}
                     <div
                       className={cn(
-                        "rounded-2xl px-4 py-2 text-sm",
-                        message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted",
+                        "rounded-2xl px-4 py-2 text-sm max-w-[85%]",
+                        message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
                       )}
                     >
                       {message.content}
                     </div>
                     {message.role === "user" && (
-                      <Avatar className="h-8 w-8 bg-primary/80">
+                      <Avatar className="h-8 w-8 bg-primary/80 flex-shrink-0 flex items-center justify-center">
                         <div className="text-xs font-medium text-primary-foreground">You</div>
                       </Avatar>
                     )}

@@ -101,4 +101,4 @@ export default async function BookPage({ params }: { params: { id: string } }) {
   return (
     <BookDetails book={book} />
   );
-} 
+}

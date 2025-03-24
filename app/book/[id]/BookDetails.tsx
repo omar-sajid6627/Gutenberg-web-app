@@ -7,6 +7,7 @@ import { ArrowLeft, Download, BookOpen } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { BookChat } from "../../components/BookChat"
+import { useEffect } from "react"
 
 interface BookDetails {
   id: string
@@ -459,6 +460,30 @@ const GenresAndKeywords = ({
 }
 
 export function BookDetails({ book }: BookDetailsProps) {
+  // Save book to recently viewed when component mounts
+  useEffect(() => {
+    const saveToRecent = () => {
+      const recentBooks = JSON.parse(localStorage.getItem('recentBooks') || '[]')
+      const newBook = {
+        id: book.id,
+        title: book.title,
+        author: book.author,
+        coverUrl: book.coverUrl,
+        readingEaseScore: book.readingEaseScore
+      }
+      
+      // Remove if already exists
+      const filteredBooks = recentBooks.filter((b: any) => b.id !== book.id)
+      
+      // Add to beginning and limit to 6 books
+      const updatedBooks = [newBook, ...filteredBooks].slice(0, 6)
+      
+      localStorage.setItem('recentBooks', JSON.stringify(updatedBooks))
+    }
+    
+    saveToRecent()
+  }, [book])
+
   // Function to sanitize URLs and prevent domain duplication
   const sanitizeUrl = (url: string | null) => {
     if (!url) return null
@@ -807,7 +832,7 @@ export function BookDetails({ book }: BookDetailsProps) {
             <GenresAndKeywords bookTypes={book.bookTypes} keywords={book.keywords} />
 
             <motion.div className="flex gap-4 pt-2" variants={itemVariants}>
-              <Link href={`/book/${book.id}/read`} target="_blank" rel="noopener noreferrer">
+              <Link href={`/book/${book.id}/read`}  rel="noopener noreferrer">
                 <Button className="flex items-center gap-2 relative overflow-hidden group">
                   <motion.div
                     className="absolute inset-0 bg-primary/20"
