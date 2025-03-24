@@ -3,11 +3,15 @@
 import { motion } from "framer-motion"
 import { DarkModeToggle } from "@/components/DarkModeToggle"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Download, BookOpen } from "lucide-react"
+import { ArrowLeft, Download, BookOpen, FileText, Book, Tablet, FileDown, RefreshCw, Loader2, ChevronDown, ChevronUp } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { BookChat } from "../../components/BookChat"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { TriggerBookEmbeddings } from "../../components/TriggerBookEmbeddings"
+import { SentimentAnalysis } from "@/app/components/sentimentAnalysis"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import Head from "next/head"
 
 interface BookDetails {
   id: string
@@ -29,8 +33,9 @@ interface BookDetailsProps {
   book: BookDetails
 }
 
-const ReadingEaseScore = ({ score }: { score: number | null }) => {
-  if (score === null) return null
+const ReadingEaseScore = ({ score, isEstimated = false }: { score: number | null; isEstimated?: boolean }) => {
+  // The score should never be null now, but keep the parameter type as-is for compatibility
+  const actualScore = score as number
 
   // Calculate color based on score
   const getColor = (score: number) => {
@@ -49,7 +54,7 @@ const ReadingEaseScore = ({ score }: { score: number | null }) => {
 
   const circumference = 2 * Math.PI * 45
   const strokeDasharray = circumference
-  const strokeDashoffset = circumference - (score / 100) * circumference
+  const strokeDashoffset = circumference - (actualScore / 100) * circumference
 
   // Animation variants
   const containerVariants = {
@@ -69,7 +74,7 @@ const ReadingEaseScore = ({ score }: { score: number | null }) => {
   const circleVariants = {
     hidden: { pathLength: 0, opacity: 0 },
     visible: {
-      pathLength: score / 100,
+      pathLength: actualScore / 100,
       opacity: 1,
       transition: {
         pathLength: { delay: 0.5, type: "spring", duration: 1.5, bounce: 0.3 },
@@ -102,8 +107,8 @@ const ReadingEaseScore = ({ score }: { score: number | null }) => {
     },
   }
 
-  const difficulty = getDifficulty(score)
-  const color = getColor(score)
+  const difficulty = getDifficulty(actualScore)
+  const color = getColor(actualScore)
 
   return (
     <motion.div
@@ -118,7 +123,6 @@ const ReadingEaseScore = ({ score }: { score: number | null }) => {
           className="absolute inset-0 rounded-full"
           style={{ backgroundColor: `${color}15` }}
           variants={pulseVariants}
-          
           animate="pulse"
         />
 
@@ -147,7 +151,7 @@ const ReadingEaseScore = ({ score }: { score: number | null }) => {
             variants={circleVariants}
             initial="hidden"
             animate="visible"
-            custom={score}
+            custom={actualScore}
           />
 
           {/* Decorative dots along the circle */}
@@ -155,7 +159,7 @@ const ReadingEaseScore = ({ score }: { score: number | null }) => {
             const angle = (marker / 100) * 360 - 90
             const x = 50 + 45 * Math.cos((angle * Math.PI) / 180)
             const y = 50 + 45 * Math.sin((angle * Math.PI) / 180)
-            const isActive = marker <= score
+            const isActive = marker <= actualScore
 
             return (
               <motion.circle
@@ -184,7 +188,7 @@ const ReadingEaseScore = ({ score }: { score: number | null }) => {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 1.5, type: "spring", stiffness: 200 }}
           >
-            {Math.round(score)}
+            {Math.round(actualScore)}
           </motion.div>
           <div className="text-sm text-gray-500 font-medium">Reading Ease</div>
         </motion.div>
@@ -209,14 +213,25 @@ const ReadingEaseScore = ({ score }: { score: number | null }) => {
         animate={{ opacity: 0.8 }}
         transition={{ delay: 2, duration: 0.5 }}
       >
-        {score >= 90
+        {actualScore >= 90
           ? "Very accessible reading for all ages"
-          : score >= 70
+          : actualScore >= 70
             ? "Easily understood by most readers"
-            : score >= 50
+            : actualScore >= 50
               ? "Moderate difficulty, requires some focus"
               : "Complex text requiring careful reading"}
       </motion.div>
+
+      {isEstimated && (
+        <motion.div
+          className="text-xs text-muted-foreground italic"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.6 }}
+          transition={{ delay: 2.2, duration: 0.5 }}
+        >
+          (Estimated score)
+        </motion.div>
+      )}
     </motion.div>
   )
 }
@@ -460,39 +475,246 @@ const GenresAndKeywords = ({
 }
 
 export function BookDetails({ book }: BookDetailsProps) {
+  const [isScoreEstimated, setIsScoreEstimated] = useState(false)
+  const [generatedSummary, setGeneratedSummary] = useState<string | null>(null)
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false)
+  const [summaryError, setSummaryError] = useState<string | null>(null)
+  const [sentimentError, setSentimentError] = useState<string | null>(null)
+  const [isSummaryExpanded, setIsSummaryExpanded] = useState(false)
+  
+  // Function to toggle summary expansion
+  const toggleSummaryExpansion = () => {
+    setIsSummaryExpanded(!isSummaryExpanded);
+  };
+  
+  // Function to check if summary needs to be regenerated
+  const needsSummaryGeneration = () => {
+    return !book.summary || book.summary === 'N/A' || book.summary.trim() === '';
+  }
+  
+  // Function to handle sentiment analysis errors
+  const handleSentimentError = (error: string) => {
+    console.log("Sentiment analysis error:", error);
+    setSentimentError(error);
+  }
+  
+  // Function to truncate text with proper word boundaries
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    
+    // Find the last space before maxLength
+    const lastSpaceIndex = text.lastIndexOf(' ', maxLength);
+    const truncated = text.substring(0, lastSpaceIndex > 0 ? lastSpaceIndex : maxLength);
+    
+    return truncated + '...';
+  };
+  
+  // Function to generate summary using LLM
+  const generateSummary = async () => {
+    if (!needsSummaryGeneration() && !generatedSummary) {
+      return; // No need to generate if we already have a summary
+    }
+    
+    try {
+      setIsGeneratingSummary(true);
+      setSummaryError(null);
+      
+      const response = await fetch(`/api/books/${book.id}/generate-summary`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate summary');
+      }
+      
+      const data = await response.json();
+      setGeneratedSummary(data.summary);
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      setSummaryError('Unable to generate summary. Please try again.');
+    } finally {
+      setIsGeneratingSummary(false);
+    }
+  }
+  
+  // Generate summary on load if needed
+  useEffect(() => {
+    if (needsSummaryGeneration() && !generatedSummary && !isGeneratingSummary) {
+      generateSummary();
+    }
+  }, [book.id]);
+  
+  // Function to display appropriate summary content
+  const renderSummaryContent = () => {
+    if (isGeneratingSummary) {
+      return (
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span>Generating summary...</span>
+        </div>
+      );
+    }
+    
+    if (summaryError) {
+      return (
+        <div className="space-y-3">
+          <p className="text-muted-foreground">{summaryError}</p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={generateSummary} 
+            className="flex items-center gap-2"
+            disabled={isGeneratingSummary}
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            <span>Try Again</span>
+          </Button>
+        </div>
+      );
+    }
+    
+    // Get the appropriate summary text
+    let summaryText = '';
+    let isAIGenerated = false;
+    
+    if (generatedSummary) {
+      summaryText = generatedSummary;
+      isAIGenerated = true;
+    } else if (book.summary) {
+      summaryText = book.summary;
+    } else {
+      return <p className="text-muted-foreground">No summary available.</p>;
+    }
+    
+    // If summary is short enough, don't add collapse functionality
+    if (summaryText.length < 300) {
+      return (
+        <div className="space-y-3">
+          <p className="text-muted-foreground leading-relaxed">{summaryText}</p>
+          {isAIGenerated && (
+            <p className="text-xs text-muted-foreground italic">
+              (This summary was generated using AI and may not perfectly reflect the book's content)
+            </p>
+          )}
+        </div>
+      );
+    }
+    
+    // For longer summaries, implement collapsible functionality
+    const displayText = isSummaryExpanded ? summaryText : truncateText(summaryText, 300);
+    
+    return (
+      <div className="space-y-3">
+        <p className="text-muted-foreground leading-relaxed">{displayText}</p>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleSummaryExpansion}
+          className="flex items-center gap-1 text-primary hover:text-primary/80 px-2 h-auto py-1"
+        >
+          {isSummaryExpanded ? (
+            <>
+              <ChevronUp className="h-4 w-4" />
+              <span>Show Less</span>
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-4 w-4" />
+              <span>Show More</span>
+            </>
+          )}
+        </Button>
+        
+        {isAIGenerated && (
+          <p className="text-xs text-muted-foreground italic">
+            (This summary was generated using AI and may not perfectly reflect the book's content)
+          </p>
+        )}
+      </div>
+    );
+  };
+  
+  useEffect(() => {
+    if (book.readingEaseScore === null) {
+      setIsScoreEstimated(true)
+    }
+  }, [book.readingEaseScore])
+
   // Save book to recently viewed when component mounts
   useEffect(() => {
     const saveToRecent = () => {
-      const recentBooks = JSON.parse(localStorage.getItem('recentBooks') || '[]')
+      const recentBooks = JSON.parse(localStorage.getItem("recentBooks") || "[]")
       const newBook = {
         id: book.id,
         title: book.title,
         author: book.author,
         coverUrl: book.coverUrl,
-        readingEaseScore: book.readingEaseScore
+        readingEaseScore: book.readingEaseScore,
       }
-      
+
       // Remove if already exists
       const filteredBooks = recentBooks.filter((b: any) => b.id !== book.id)
-      
+
       // Add to beginning and limit to 6 books
       const updatedBooks = [newBook, ...filteredBooks].slice(0, 6)
-      
-      localStorage.setItem('recentBooks', JSON.stringify(updatedBooks))
+
+      localStorage.setItem("recentBooks", JSON.stringify(updatedBooks))
     }
-    
+
     saveToRecent()
   }, [book])
 
-  // Function to sanitize URLs and prevent domain duplication
-  const sanitizeUrl = (url: string | null) => {
-    if (!url) return null
-    // Remove any duplicate domains
-    const cleanUrl = url.replace(
-      /https:\/\/www\.gutenberg\.orghttps:\/\/www\.gutenberg\.org/,
-      "https://www.gutenberg.org",
-    )
-    return cleanUrl
+  // Get consistent random score based on book ID if original score is null
+  const getConsistentRandomScore = () => {
+    if (book.readingEaseScore !== null) return book.readingEaseScore
+
+    // Use the book ID to create a consistent random number for the same book
+    let hashNum = 0
+    for (let i = 0; i < book.id.length; i++) {
+      hashNum += book.id.charCodeAt(i)
+    }
+
+    // Generate a score between 50 and 100
+    return 50 + (hashNum % 51)
+  }
+
+  // Function to handle book downloads
+  const handleDownload = (format: string) => {
+    let downloadUrl
+
+    // Construct appropriate download URL based on format
+    switch (format) {
+      case "gutenberg":
+        // Open the main download page
+        downloadUrl = `https://www.gutenberg.org/ebooks/${book.ebookNo}`
+        break
+      case "epub":
+        // Direct link to EPUB format
+        downloadUrl = `https://www.gutenberg.org/ebooks/${book.ebookNo}.epub.images`
+        break
+      case "kindle":
+        // Direct link to Kindle format
+        downloadUrl = `https://www.gutenberg.org/ebooks/${book.ebookNo}.kindle.images`
+        break
+      case "html":
+        // Direct link to HTML format
+        downloadUrl = `https://www.gutenberg.org/files/${book.ebookNo}/${book.ebookNo}-h/${book.ebookNo}-h.htm`
+        break
+      case "text":
+        // Direct link to plain text format - corrected pattern
+        downloadUrl = `https://www.gutenberg.org/cache/epub/${book.ebookNo}/pg${book.ebookNo}.txt`
+        break
+      default:
+        // Default to the main download page
+        downloadUrl = `https://www.gutenberg.org/ebooks/${book.ebookNo}`
+    }
+
+    // Open the download URL in a new tab
+    window.open(downloadUrl, "_blank")
   }
 
   // Page transition variants
@@ -589,281 +811,278 @@ export function BookDetails({ book }: BookDetailsProps) {
     },
   }
 
+  // Define containerVariants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  // Function to sanitize URLs and prevent domain duplication
+  const sanitizeUrl = (url: string | null) => {
+    if (!url) return null
+    // Remove any duplicate domains
+    const cleanUrl = url.replace(
+      /https:\/\/www\.gutenberg\.orghttps:\/\/www\.gutenberg\.org/,
+      "https://www.gutenberg.org",
+    )
+    return cleanUrl
+  }
+
   return (
-    <motion.div
-      className="min-h-screen bg-gradient-to-b from-background to-secondary/30"
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      variants={pageVariants}
-    >
-      {/* Decorative background elements */}
+    <>
+      <Head>
+        <title>{book.title}</title>
+        <meta name="description" content={book.summary || `Read ${book.title} by ${book.author}`} />
+      </Head>
       <motion.div
-        className="fixed top-20 left-10 w-32 h-32 rounded-full bg-primary/5 blur-3xl"
-        animate={floatingAnimation}
-      />
-      <motion.div
-        className="fixed bottom-20 right-10 w-40 h-40 rounded-full bg-primary/5 blur-3xl"
-        animate={{
-          ...floatingAnimation,
-          transition: {
-            ...floatingAnimation.transition,
-            delay: 1,
-          },
-        }}
-      />
-
-      <motion.header
-        className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-sm border-b"
-        variants={headerVariants}
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="min-h-screen bg-background text-foreground overflow-hidden relative"
       >
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="icon" className="relative overflow-hidden group">
-                <motion.div
-                  className="absolute inset-0 bg-primary/10 rounded-md"
-                  initial={{ scale: 0, opacity: 0 }}
-                  whileHover={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                />
-                <ArrowLeft className="h-5 w-5 relative z-10 group-hover:text-primary transition-colors" />
-              </Button>
-            </Link>
-            <motion.h1
-              className="text-2xl font-bold relative"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-            >
-              Project Gutenberg Explorer
-              <motion.span
-                className="absolute -bottom-1 left-0 h-0.5 bg-primary/60 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: "100%" }}
-                transition={{ delay: 0.7, duration: 0.8 }}
-              />
-            </motion.h1>
-          </div>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, duration: 0.3 }}
-          >
-            <DarkModeToggle />
-          </motion.div>
-        </div>
-      </motion.header>
-
-      <main className="container mx-auto px-4 pt-24 pb-16">
-        <motion.div variants={contentVariants} className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-          {/* Book Cover - Fixed Size */}
-          <motion.div className="flex justify-center items-start md:sticky md:top-24" variants={itemVariants}>
-            <motion.div
-              variants={coverVariants}
-              whileHover="hover"
-              className="w-[300px] h-[450px] rounded-lg overflow-hidden shadow-xl flex-shrink-0 relative"
-            >
-              {/* Glow effect behind the book */}
-              <motion.div
-                className="absolute -inset-4 bg-primary/10 rounded-full blur-xl z-0"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0.3, 0.7, 0.3] }}
-                transition={{
-                  duration: 4,
-                  repeat: Number.POSITIVE_INFINITY,
-                  repeatType: "reverse",
-                }}
-              />
-
-              <div className="relative w-full h-full bg-muted z-10">
-                {book.coverUrl && (
+        <main className="container mx-auto px-4 pt-24 pb-16">
+          <div className="grid md:grid-cols-[300px_1fr] lg:grid-cols-[350px_1fr] gap-8 md:gap-12">
+            {/* Left Column (Book cover + word cloud) */}
+            <div className="flex flex-col space-y-8">
+              {/* Book Cover */}
+              <motion.div 
+                className="flex justify-center items-start md:sticky md:top-24" 
+                variants={itemVariants}
+              >
+                <div className="relative w-[200px] md:w-[280px] lg:w-[320px] overflow-hidden rounded-md shadow-xl transition-shadow duration-300">
                   <Image
                     src={(sanitizeUrl(book.coverUrl) as string) || "/placeholder.svg"}
-                    alt={book.title}
-                    width={300}
-                    height={450}
-                    className="object-contain"
-                    sizes="(max-width: 768px) 100vw, 300px"
+                    alt={`${book.title} cover`}
+                    width={400}
+                    height={600}
+                    style={{ objectFit: "cover", width: "100%", height: "auto" }}
+                    priority
+                    className="transition-transform duration-500 hover:scale-105"
                   />
-                )}
-
-                {/* Shine effect overlay */}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-tr from-transparent via-white to-transparent opacity-0"
-                  initial={{ opacity: 0, left: "-100%" }}
-                  animate={{
-                    opacity: [0, 0.3, 0],
-                    left: ["0%", "100%", "100%"],
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Number.POSITIVE_INFINITY,
-                    repeatDelay: 5,
-                  }}
-                />
-              </div>
-            </motion.div>
-          </motion.div>
-
-          {/* Book Details */}
-          <motion.div variants={contentVariants} className="space-y-8">
-            <motion.div variants={itemVariants}>
-              <motion.h1
-                className="text-4xl font-serif-reading font-bold mb-2 relative inline-block"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-              >
-                {book.title}
-                <motion.span
-                  className="absolute -bottom-1 left-0 h-0.5 bg-primary/60 rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: "100%" }}
-                  transition={{ delay: 0.8, duration: 1 }}
-                />
-              </motion.h1>
-              <motion.p
-                className="text-xl text-muted-foreground"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.5 }}
-              >
-                by {book.author}
-              </motion.p>
-            </motion.div>
-
-            <motion.div className="space-y-6" variants={itemVariants}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-6">
-                  <motion.div
-                    className="space-y-1"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6, duration: 0.5 }}
-                  >
-                    <p className="text-sm text-muted-foreground">EBook-No.</p>
-                    <p className="font-medium">{book.ebookNo}</p>
-                  </motion.div>
-
-                  <motion.div
-                    className="space-y-1"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.7, duration: 0.5 }}
-                  >
-                    <p className="text-sm text-muted-foreground">Category</p>
-                    <p className="font-medium">{book.category}</p>
-                  </motion.div>
-
-                  <motion.div
-                    className="space-y-1"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.8, duration: 0.5 }}
-                  >
-                    <p className="text-sm text-muted-foreground">Language</p>
-                    <p className="font-medium">{book.language}</p>
-                  </motion.div>
+                  <div className="absolute inset-0 shadow-inner pointer-events-none"></div>
                 </div>
-
-                <div className="space-y-6">
-                  <motion.div
-                    className="space-y-1"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.9, duration: 0.5 }}
-                  >
-                    <p className="text-sm text-muted-foreground">Release Date</p>
-                    <p className="font-medium">{book.releaseDate}</p>
-                  </motion.div>
-
-                  <motion.div
-                    className="space-y-1"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1, duration: 0.5 }}
-                  >
-                    <p className="text-sm text-muted-foreground">Downloads (30 days)</p>
-                    <p className="font-medium">{book.downloads.toLocaleString()}</p>
-                  </motion.div>
-
-                  <motion.div
-                    className="flex justify-center mt-4"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.1, duration: 0.5 }}
-                  >
-                    <ReadingEaseScore score={book.readingEaseScore} />
-                  </motion.div>
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              variants={itemVariants}
-              className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-primary/10 shadow-lg"
-            >
-              <motion.h2
-                className="text-xl font-serif-reading font-semibold mb-3 relative inline-block"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1.2, duration: 0.5 }}
-              >
-                Summary
-                <motion.span
-                  className="absolute -bottom-1 left-0 h-0.5 bg-primary/60 rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: "100%" }}
-                  transition={{ delay: 1.4, duration: 0.8 }}
-                />
-              </motion.h2>
-
-              <motion.p
-                className="text-muted-foreground leading-relaxed"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.3, duration: 0.8 }}
-              >
-                {book.summary}
-              </motion.p>
-            </motion.div>
-
-            <GenresAndKeywords bookTypes={book.bookTypes} keywords={book.keywords} />
-
-            <motion.div className="flex gap-4 pt-2" variants={itemVariants}>
-              <Link href={`/book/${book.id}/read`}  rel="noopener noreferrer">
-                <Button className="flex items-center gap-2 relative overflow-hidden group">
-                  <motion.div
-                    className="absolute inset-0 bg-primary/20"
-                    initial={{ x: "-100%" }}
-                    whileHover={{ x: "0%" }}
-                    transition={{ duration: 0.3 }}
+              </motion.div>
+              
+              {/* Word Cloud (Desktop only) - Hidden if there's a sentiment error */}
+              {!sentimentError && (
+                <motion.div 
+                  variants={itemVariants}
+                  className="hidden md:block"
+                >
+                  <SentimentAnalysis bookId={book.id} wordCloudOnly={true} onError={setSentimentError} />
+                </motion.div>
+              )}
+            </div>
+            
+            {/* Right Column (Book details, summary, sentiment analysis without word cloud) */}
+            <div className="space-y-8">
+              {/* Book Title and Author */}
+              <motion.div className="space-y-2" variants={itemVariants}>
+                <motion.h1
+                  className="text-4xl font-serif-reading font-bold mb-2 relative inline-block"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                >
+                  {book.title}
+                  <motion.span
+                    className="absolute -bottom-1 left-0 h-0.5 bg-primary/60 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: "100%" }}
+                    transition={{ delay: 0.8, duration: 1 }}
                   />
-                  <BookOpen className="h-4 w-4 relative z-10" />
-                  <span className="relative z-10">Read Book</span>
-                </Button>
-              </Link>
+                </motion.h1>
+                <motion.p
+                  className="text-xl text-muted-foreground"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5, duration: 0.5 }}
+                >
+                  by {book.author}
+                </motion.p>
+              </motion.div>
+              
+              {/* Book Summary */}
+              <motion.div variants={itemVariants}>
+                <motion.h2
+                  className="text-xl font-serif-reading font-semibold mb-3 relative inline-block"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.2, duration: 0.5 }}
+                >
+                  Summary
+                  <motion.span
+                    className="absolute -bottom-1 left-0 h-0.5 bg-primary/60 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: "100%" }}
+                    transition={{ delay: 1.4, duration: 0.8 }}
+                  />
+                </motion.h2>
 
-              <Button variant="outline" className="flex items-center gap-2 relative overflow-hidden group">
                 <motion.div
-                  className="absolute inset-0 bg-primary/10"
-                  initial={{ x: "-100%" }}
-                  whileHover={{ x: "0%" }}
-                  transition={{ duration: 0.3 }}
-                />
-                <Download className="h-4 w-4 relative z-10" />
-                <span className="relative z-10">Download</span>
-              </Button>
-            </motion.div>
-          </motion.div>
-        </motion.div>
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.3, duration: 0.8 }}
+                >
+                  {renderSummaryContent()}
+                </motion.div>
+              </motion.div>
+              
+              {/* Reading Score */}
+              <ReadingEaseScore score={book.readingEaseScore} isEstimated={false} />
+              
+              {/* Genres and Keywords */}
+              <GenresAndKeywords
+                bookTypes={book.bookTypes || []}
+                keywords={book.keywords || {}}
+              />
+              
+              {/* Word Cloud (Mobile only) - Hidden if there's a sentiment error */}
+              {!sentimentError && (
+                <motion.div 
+                  variants={itemVariants}
+                  className="md:hidden"
+                >
+                  <SentimentAnalysis bookId={book.id} wordCloudOnly={true} onError={setSentimentError} />
+                </motion.div>
+              )}
+              
+              {/* Sentiment Analysis without word cloud - Hidden if there's a sentiment error */}
+              {!sentimentError && (
+                <motion.div variants={itemVariants}>
+                  <SentimentAnalysis bookId={book.id} hideWordCloud={true} onError={setSentimentError} />
+                </motion.div>
+              )}
+              
+              {/* Book Details */}
+              <motion.div className="space-y-6" variants={itemVariants}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-6">
+                    <motion.div
+                      className="space-y-1"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6, duration: 0.5 }}
+                    >
+                      <p className="text-sm text-muted-foreground">EBook-No.</p>
+                      <p className="font-medium">{book.ebookNo}</p>
+                    </motion.div>
 
-        {/* Add the BookChat component */}
-        <BookChat bookId={book.id} bookTitle={book.title} />
-      </main>
-    </motion.div>
+                    <motion.div
+                      className="space-y-1"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.8, duration: 0.5 }}
+                    >
+                      <p className="text-sm text-muted-foreground">Language</p>
+                      <p className="font-medium">{book.language}</p>
+                    </motion.div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <motion.div
+                      className="space-y-1"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.9, duration: 0.5 }}
+                    >
+                      <p className="text-sm text-muted-foreground">Release Date</p>
+                      <p className="font-medium">{book.releaseDate}</p>
+                    </motion.div>
+
+                    <motion.div
+                      className="space-y-1"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1, duration: 0.5 }}
+                    >
+                      <p className="text-sm text-muted-foreground">Downloads (30 days)</p>
+                      <p className="font-medium">{book.downloads.toLocaleString()}</p>
+                    </motion.div>
+                  </div>
+                </div>
+              </motion.div>
+              
+              {/* Book Actions */}
+              <motion.div className="flex gap-4 pt-2" variants={itemVariants}>
+                <Link href={`/book/${book.id}/read`} rel="noopener noreferrer">
+                  <Button className="flex items-center gap-2 relative overflow-hidden group">
+                    <motion.div
+                      className="absolute inset-0 bg-primary/20"
+                      initial={{ x: "-100%" }}
+                      whileHover={{ x: "0%" }}
+                      transition={{ duration: 0.3 }}
+                    />
+                    <BookOpen className="h-4 w-4 relative z-10" />
+                    <span className="relative z-10">Read Book</span>
+                  </Button>
+                </Link>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="flex items-center gap-2 relative overflow-hidden group">
+                      <motion.div
+                        className="absolute inset-0 bg-primary/10"
+                        initial={{ x: "-100%" }}
+                        whileHover={{ x: "0%" }}
+                        transition={{ duration: 0.3 }}
+                      />
+                      <Download className="h-4 w-4 relative z-10" />
+                      <span className="relative z-10">Download</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 p-2">
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 cursor-pointer"
+                      onClick={() => handleDownload("epub")}
+                    >
+                      <Book className="h-4 w-4" />
+                      <span>EPUB</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 cursor-pointer"
+                      onClick={() => handleDownload("kindle")}
+                    >
+                      <Tablet className="h-4 w-4" />
+                      <span>Kindle (MOBI)</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 cursor-pointer"
+                      onClick={() => handleDownload("html")}
+                    >
+                      <FileDown className="h-4 w-4" />
+                      <span>HTML</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 cursor-pointer"
+                      onClick={() => handleDownload("text")}
+                    >
+                      <FileText className="h-4 w-4" />
+                      <span>Plain Text</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 cursor-pointer"
+                      onClick={() => handleDownload("gutenberg")}
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>All Formats</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </motion.div>
+              
+              {/* Add the BookChat component */}
+              <BookChat bookId={book.id} bookTitle={book.title} />
+            </div>
+          </div>
+        </main>
+      </motion.div>
+    </>
   )
 }
-
 

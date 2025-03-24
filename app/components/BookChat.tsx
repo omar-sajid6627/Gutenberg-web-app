@@ -1,7 +1,9 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useRef, useEffect } from "react"
-import { MessageCircle, Send, X, Loader2, BookOpen } from "lucide-react"
+import { MessageCircle, Send, X, Loader2, BookOpen, Sparkles } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Avatar } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -19,6 +21,7 @@ export function BookChat({ bookId, bookTitle, className }: BookChatProps) {
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -34,6 +37,16 @@ export function BookChat({ bookId, bookTitle, className }: BookChatProps) {
     }
   }, [isChatOpen])
 
+  // Effect to handle timeout for loading state
+  useEffect(() => {
+    // Clean up timeout when component unmounts
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
+    }
+  }, [timeoutId])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim() || isLoading) return
@@ -43,52 +56,156 @@ export function BookChat({ bookId, bookTitle, className }: BookChatProps) {
     setMessages((prev) => [...prev, { role: "user", content: userMessage }])
     setIsLoading(true)
 
+    // Set a timeout to recover from stuck loading state
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        console.log('Response timeout - resetting loading state')
+        setIsLoading(false)
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: "I'm having trouble connecting to the server. Please try again in a moment.",
+          },
+        ])
+      }
+    }, 15000) // 15 second timeout
+    
+    setTimeoutId(timeout)
+
     try {
       const response = await fetch(`/api/books/${bookId}/ask`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           query: userMessage,
           book_id: bookId,
-          temperature: 0
+          temperature: 0,
         }),
       })
 
+      // Clear the timeout since we got a response
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+        setTimeoutId(null)
+      }
+
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.details || 'Failed to get response')
+        throw new Error(errorData.details || "Failed to get response")
       }
 
       const data = await response.json()
-      setMessages((prev) => [...prev, { 
-        role: "assistant", 
-        content: data.answer || "No response received" 
-      }])
-    } catch (error: any) {
-      console.error('Chat error:', error)
+      console.log("LLM response received:", data)
+      
       setMessages((prev) => [
         ...prev,
-        { 
-          role: "assistant", 
-          content: `Error: ${error?.message || 'An error occurred'}. Please try again.`
+        {
+          role: "assistant",
+          content: data.answer || "No response received",
+        },
+      ])
+    } catch (error: any) {
+      console.error("Chat error:", error)
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: `Error: ${error?.message || "An error occurred"}. Please try again.`,
         },
       ])
     } finally {
+      // Clear any pending timeouts
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+        setTimeoutId(null)
+      }
       setIsLoading(false)
     }
   }
 
   return (
     <>
-      {/* Chat Button */}
+      {/* Talk to the book box */}
       <motion.div
-        className={cn("z-50", className)}
+        className={cn("fixed left-6 bottom-6 z-50", isChatOpen ? "opacity-0 pointer-events-none" : "opacity-100")}
+        initial={{ opacity: 0, x: -20 }}
+        animate={{
+          opacity: isChatOpen ? 0 : 1,
+          x: isChatOpen ? -20 : 0,
+          transition: {
+            type: "spring",
+            stiffness: 300,
+            damping: 25,
+          },
+        }}
+        whileHover={{
+          scale: 1.05,
+          boxShadow: "0 0 20px rgba(255, 255, 255, 0.3)",
+          transition: { duration: 0.3 },
+        }}
+        onClick={() => setIsChatOpen(true)}
+      >
+        <div className="relative w-64 h-24 cursor-pointer group">
+          {/* Animated glow effect */}
+          <div className="absolute -inset-0.5 rounded-xl opacity-75 group-hover:opacity-100 blur-sm group-hover:blur-md bg-glow-animation"></div>
+
+          {/* Black background with subtle gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black to-gray-900 rounded-lg"></div>
+
+          {/* Subtle pattern overlay */}
+          <div className="absolute inset-0 rounded-lg opacity-10 pattern-dots"></div>
+
+          {/* Content */}
+          <div className="relative flex items-center justify-between p-4 h-full">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Sparkles className="h-4 w-4 text-amber-300" />
+                <h3 className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 text-lg tracking-tight">
+                  Talk to book
+                </h3>
+              </div>
+              <p className="text-blue-100/80 text-xs">
+                Ask me anything about <span className="italic font-medium text-blue-200">"{bookTitle}"</span>
+              </p>
+
+              {/* Animated arrow */}
+              <motion.div
+                className="absolute bottom-3 right-4 text-white/80"
+                animate={{
+                  x: [0, 5, 0],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Number.POSITIVE_INFINITY,
+                  repeatType: "reverse",
+                }}
+              >
+                <div className="flex items-center gap-1 text-xs font-medium">
+                  <span>Chat now</span>
+                  <span>→</span>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Glowing icon */}
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-800 p-2.5 rounded-full shadow-lg relative">
+              <div className="absolute inset-0 rounded-full animate-pulse-slow bg-blue-400/20 blur-sm"></div>
+              <MessageCircle className="h-5 w-5 text-white relative z-10" />
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Chat Button (original) */}
+      <motion.div
+        className={cn("z-50", className, isChatOpen ? "opacity-100" : "opacity-0 pointer-events-none")}
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{
           scale: 1,
-          opacity: 1,
+          opacity: isChatOpen ? 1 : 0,
           transition: {
             type: "spring",
             stiffness: 200,
@@ -136,7 +253,7 @@ export function BookChat({ bookId, bookTitle, className }: BookChatProps) {
           <motion.div
             className={cn(
               "w-[350px] sm:w-[400px] h-[500px] bg-card rounded-2xl shadow-2xl border border-primary/20 overflow-hidden z-50 flex flex-col",
-              className ? "fixed bottom-20" : "fixed bottom-6 left-6"
+              className ? "fixed bottom-20" : "fixed bottom-6 left-6",
             )}
             initial={{ opacity: 0, scale: 0.9, y: 20, x: -20 }}
             animate={{
@@ -202,7 +319,7 @@ export function BookChat({ bookId, bookTitle, className }: BookChatProps) {
                     }}
                     className={cn(
                       "flex items-start gap-3",
-                      message.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto flex-row"
+                      message.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto flex-row",
                     )}
                   >
                     {message.role === "assistant" && (
@@ -213,7 +330,7 @@ export function BookChat({ bookId, bookTitle, className }: BookChatProps) {
                     <div
                       className={cn(
                         "rounded-2xl px-4 py-2 text-sm max-w-[85%]",
-                        message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
+                        message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted",
                       )}
                     >
                       {message.content}
@@ -270,4 +387,5 @@ export function BookChat({ bookId, bookTitle, className }: BookChatProps) {
       </AnimatePresence>
     </>
   )
-} 
+}
+

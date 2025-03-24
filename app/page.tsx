@@ -76,37 +76,58 @@ export default function Home() {
       </motion.div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 pt-28 pb-16">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="flex flex-col items-center justify-center min-h-[60vh] relative"
+          className="max-w-4xl mx-auto mb-16 text-center"
         >
-          <motion.div
-            variants={itemVariants}
-            className="text-center space-y-6 max-w-2xl mx-auto"
-          >
-            <motion.h1
-              variants={itemVariants}
-              className="text-4xl md:text-5xl font-serif-reading font-bold"
-            >
-              Project Gutenberg Explorer
-            </motion.h1>
-            <motion.p
-              variants={itemVariants}
-              className="text-lg text-muted-foreground"
-            >
-              Discover and read thousands of free books from Project Gutenberg
-            </motion.p>
-          </motion.div>
+          <motion.h2 variants={itemVariants} className="text-4xl font-serif-reading font-bold mb-4">
+            Discover Classic Literature
+          </motion.h2>
+          <motion.p variants={itemVariants} className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Explore thousands of free books from the world's greatest authors
+          </motion.p>
 
-          <motion.div
-            variants={itemVariants}
-            className="w-full max-w-2xl mt-8"
-          >
-            <SearchBar />
-          </motion.div>
+          {/* Animated Glowing Search Icon / Search Bar */}
+          <AnimatePresence mode="wait">
+            {searchVisible ? (
+              <motion.div
+                key="searchBar"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 350, damping: 20 }}
+                className="w-full max-w-md mx-auto relative"
+              >
+                <SearchBar />
+                {/* Close Button */}
+                <motion.button
+                  onClick={toggleSearch}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="absolute -top-3 -right-3 p-2 bg-white rounded-full shadow-md"
+                  aria-label="Close search"
+                >
+                  <X className="h-5 w-5 text-primary" />
+                </motion.button>
+              </motion.div>
+            ) : (
+              <motion.button
+                key="searchIcon"
+                onClick={toggleSearch}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                className="mx-auto flex items-center justify-center p-4 rounded-full bg-primary/10 text-primary shadow-lg"
+                style={{ animation: "glowShift 2s ease-in-out infinite" }}
+                aria-label="Open search"
+              >
+                <Search className="h-8 w-8" />
+              </motion.button>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         <motion.section

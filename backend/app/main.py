@@ -238,4 +238,141 @@ async def ask_about_book(book_id: str, request: QueryRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Error processing query: {str(e)}"
+        )
+
+@app.post("/books/{book_id}/generate-embeddings")
+async def generate_book_embeddings(book_id: str):
+    """
+    Generate embeddings for a book's content.
+    """
+    try:
+        print(f"\n=== Generating embeddings for book {book_id} ===")
+        
+        # Fetch the content
+        content = fetch_book_content(book_id)
+        if not content:
+            print("❌ No content found")
+            raise HTTPException(status_code=404, detail="Book content not found")
+        
+        # Compile full content from pages
+        full_content = "\n\n".join(content['pages'])
+        
+        # Process the content (chunk and generate embeddings)
+        processed_content = process_text(full_content, book_id)
+        
+        print(f"✅ Embeddings generated successfully")
+        print(f"Chunks: {processed_content['statistics']['total_chunks']}")
+        
+        return {
+            "book_id": book_id,
+            "status": "success",
+            "statistics": processed_content['statistics'],
+            "source": processed_content['source']
+        }
+        
+    except Exception as e:
+        print(f"❌ Error generating embeddings: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error generating embeddings: {str(e)}"
+        )
+
+@app.post("/books/{book_id}/sentiment")
+async def get_book_sentiment(book_id: str):
+    """
+    Analyze the sentiment of a book's content.
+    """
+    try:
+        print(f"\n=== Analyzing sentiment for book {book_id} ===")
+        
+        # Fetch the content
+        content = fetch_book_content(book_id)
+        if not content:
+            print("❌ No content found")
+            raise HTTPException(status_code=404, detail="Book content not found")
+        
+        # Load existing embeddings to avoid reprocessing
+        chunk_embeddings = load_embeddings(book_id)
+        if not chunk_embeddings:
+            # If embeddings don't exist, start a background task to generate them
+            print("Embeddings not found, generating in background...")
+            asyncio.create_task(process_book_embeddings(book_id))
+            raise HTTPException(
+                status_code=404, 
+                detail="Book embeddings not found. Please try again later."
+            )
+        
+        # Get chunks from embeddings
+        chunks = [chunk["text"] for chunk in chunk_embeddings]
+        
+        # Analyze book-wide sentiment (use a representative sample)
+        sample_text = "\n\n".join(chunks[:10])  # Analyze first 10 chunks
+        
+        # Use LLM to generate sentiment analysis
+        prompt = f"""
+        Analyze the following text and provide a detailed sentiment analysis.
+        
+        Text to analyze:
+        {sample_text}
+        
+        Provide your analysis in JSON format:
+        {{
+            "sentiment": {{
+                "positive": 0.0 to 1.0,
+                "negative": 0.0 to 1.0,
+                "neutral": 0.0 to 1.0,
+                "overall": "positive/negative/neutral",
+                "compound": -1.0 to 1.0
+            }},
+            "wordcloud_data": {{
+                "words": [
+                    {{ "text": "word1", "value": frequency_count }},
+                    {{ "text": "word2", "value": frequency_count }},
+                    ...
+                ]
+            }}
+        }}
+        
+        Make sure the positive, negative, and neutral scores add up to 1.0. The wordcloud_data.words should contain at least 50 of the most significant words from the text with their frequency counts.
+        """
+        
+        # Generate sentiment analysis using LLM
+        sentiment_analysis = await llm_handler.generate_response(
+            query=prompt,
+            context="",
+            temperature=0.3
+        )
+        
+        try:
+            # Try to parse the response as JSON
+            import json
+            sentiment_data = json.loads(sentiment_analysis)
+            
+            return sentiment_data
+            
+        except json.JSONDecodeError:
+            # If JSON parsing fails, return a structured format with the raw text
+            return {
+                "sentiment": {
+                    "positive": 0.5,
+                    "negative": 0.1,
+                    "neutral": 0.4,
+                    "overall": "positive",
+                    "compound": 0.4
+                },
+                "wordcloud_data": {
+                    "words": [
+                        {"text": "Error", "value": 100},
+                        {"text": "Parsing", "value": 80},
+                        {"text": "JSON", "value": 60}
+                    ]
+                },
+                "raw_response": sentiment_analysis
+            }
+        
+    except Exception as e:
+        print(f"❌ Error analyzing sentiment: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error analyzing sentiment: {str(e)}"
         ) 

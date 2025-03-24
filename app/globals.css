@@ -24,6 +24,12 @@
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
     --radius: 0.75rem;
+    
+    /* Chart colors */
+    --chart-bar: #333333;
+    --chart-tooltip-bg: #111111;
+    --chart-tooltip-text: #ffffff;
+    --chart-hover-bg: rgba(0, 0, 0, 0.05);
   }
 
   .dark {
@@ -46,6 +52,12 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
+    
+    /* Chart colors */
+    --chart-bar: #ffffff;
+    --chart-tooltip-bg: #000000;
+    --chart-tooltip-text: #ffffff;
+    --chart-hover-bg: rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -97,8 +109,6 @@
   @apply bg-primary/70;
 }
 
-
-
 @keyframes glowShift {
   0% {
     box-shadow: 0 0 8px #ff00ff;
@@ -110,3 +120,37 @@
     box-shadow: 0 0 8px #ff00ff;
   }
 }
+
+/* Sentiment Analysis Styles */
+.book-sentiment {
+  margin: 2rem 0;
+  padding: 1rem;
+  background: var(--background);
+  border-radius: 8px;
+}
+
+.sentiment-overview {
+  margin-bottom: 1.5rem;
+}
+
+.sentiment-overview .positive {
+  color: #22c55e;
+}
+
+.sentiment-overview .negative {
+  color: #ef4444;
+}
+
+.sentiment-overview .neutral {
+  color: #6c757d;
+}
+
+.sentiment-chart, .wordcloud-container {
+  margin-top: 1.5rem;
+  background: var(--background);
+  padding: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* End Sentiment Analysis Styles */
