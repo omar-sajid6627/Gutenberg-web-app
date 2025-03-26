@@ -37,7 +37,7 @@ function extractBookInfo(subjects: string[]) {
 async function getBookDetails(id: string) {
   try {
     console.log("Fetching book details for ID:", id);
-    const response = await fetch(`http://localhost:8000/books/${id}`, { 
+    const response = await fetch(`https://dull-meggie-1omar-d9f030db.koyeb.app/books/${id}`, { 
       next: { revalidate: 3600 } // Cache for 1 hour, but allow dynamic updates
     });
     

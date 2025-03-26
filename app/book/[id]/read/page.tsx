@@ -1,4 +1,5 @@
 import { BookReader } from './BookReader';
+import { API_BASE_URL } from '@/app/env';
 
 export const dynamic = 'force-dynamic';
 
@@ -6,7 +7,7 @@ export const dynamic = 'force-dynamic';
 async function getBookContent(id: string) {
   try {
     console.log("Fetching book content for ID:", id); 
-    const response = await fetch(`http://localhost:8000/books/${id}/content`, { 
+    const response = await fetch(`${API_BASE_URL}/books/${id}/content`, { 
       next: { revalidate: 3600 }
     });
     console.log("Response:", response);
@@ -48,7 +49,7 @@ async function getBookContent(id: string) {
 async function createFallbackContent(id: string) {
   try {
     // Fetch the book metadata to use as fallback content
-    const metadataResponse = await fetch(`http://localhost:8000/books/${id}`, {
+    const metadataResponse = await fetch(`${API_BASE_URL}/books/${id}`, {
       next: { revalidate: 3600 }
     });
     
@@ -113,7 +114,7 @@ async function createFallbackContent(id: string) {
 
 async function getBookMetadata(id: string) {
   try {
-    const response = await fetch(`http://localhost:8000/books/${id}`, { 
+    const response = await fetch(`${API_BASE_URL}/books/${id}`, { 
       next: { revalidate: 3600 }
     });
     

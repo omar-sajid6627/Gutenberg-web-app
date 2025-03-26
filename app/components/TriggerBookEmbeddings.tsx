@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
+import { API_BASE_URL } from '@/app/env'
 
 interface Book {
   id: string
@@ -16,7 +17,7 @@ export function TriggerBookEmbeddings({ book }: TriggerBookEmbeddingsProps) {
       if (!book?.id) return // Prevent running if book ID is not available
 
       try {
-        await fetch(`http://localhost:8000/books/${book.id}/generate-embeddings`, {
+        await fetch(`${API_BASE_URL}/books/${book.id}/generate-embeddings`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

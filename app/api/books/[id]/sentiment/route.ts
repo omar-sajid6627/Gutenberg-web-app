@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { API_BASE_URL } from '@/app/env'
 
 export async function POST(
   request: NextRequest,
@@ -8,7 +9,7 @@ export async function POST(
     const bookId = params.id
 
     // Make the request to the backend
-    const backendResponse = await fetch(`http://localhost:8000/books/${bookId}/sentiment`, {
+    const backendResponse = await fetch(`${API_BASE_URL}/books/${bookId}/sentiment`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

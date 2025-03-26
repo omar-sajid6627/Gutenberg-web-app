@@ -9,6 +9,7 @@ import type { Book } from "@/types/book"
 import { useBookContent } from "@/hooks/useBookContent"
 import { BookChat } from "../../../components/BookChat"
 import { MarkdownRenderer } from "@/app/components/MarkdownRenderer"
+import { API_BASE_URL } from '@/app/env'
 
 interface BookReaderProps {
   book: Book
@@ -157,7 +158,7 @@ export function BookReader({ book }: BookReaderProps) {
         return;
       }
 
-      const response = await fetch('http://localhost:8000/tts', {
+      const response = await fetch(`${API_BASE_URL}/tts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -207,7 +208,7 @@ export function BookReader({ book }: BookReaderProps) {
 
     try {
       console.log(`Pre-generating chunk ${nextChunkIndex + 1} of ${totalChunks}`);
-      const response = await fetch('http://localhost:8000/tts', {
+      const response = await fetch(`${API_BASE_URL}/tts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -284,7 +285,7 @@ export function BookReader({ book }: BookReaderProps) {
       }
 
       // First, get the text chunks
-      const chunksResponse = await fetch('http://localhost:8000/tts/chunks', {
+      const chunksResponse = await fetch(`${API_BASE_URL}/tts/chunks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

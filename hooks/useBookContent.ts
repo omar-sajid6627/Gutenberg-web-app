@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE_URL } from '@/app/env';
 
 interface PaginatedContent {
   pages: string[];
@@ -38,7 +39,7 @@ export function useBookContent(bookId: string) {
 
         // If not in cache or expired, fetch from API
         console.log('Fetching content for book:', bookId);
-        const response = await fetch(`http://localhost:8000/books/${bookId}/content`);
+        const response = await fetch(`${API_BASE_URL}/books/${bookId}/content`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch book content: ${response.status}`);
