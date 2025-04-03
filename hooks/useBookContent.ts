@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { API_BASE_URL } from '@/app/env';
+import { API_BASE_URL } from '@/env';
 
 interface PaginatedContent {
   pages: string[];

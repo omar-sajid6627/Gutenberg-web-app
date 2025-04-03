@@ -9,7 +9,7 @@ import type { Book } from "@/types/book"
 import { useBookContent } from "@/hooks/useBookContent"
 import { BookChat } from "../../../components/BookChat"
 import { MarkdownRenderer } from "@/app/components/MarkdownRenderer"
-import { API_BASE_URL } from '@/app/env'
+import { API_BASE_URL } from '@/env'
 
 interface BookReaderProps {
   book: Book
