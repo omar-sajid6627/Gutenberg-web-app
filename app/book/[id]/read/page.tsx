@@ -1,5 +1,5 @@
 import { BookReader } from './BookReader';
-import { API_BASE_URL } from '@/env';
+import { API_BASE_URL } from '@/app/lib/env';
 
 export const dynamic = 'force-dynamic';
 

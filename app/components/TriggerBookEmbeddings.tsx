@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import { API_BASE_URL } from '@/env'
+import { API_BASE_URL } from '@/app/lib/env'
 
 interface Book {
   id: string
