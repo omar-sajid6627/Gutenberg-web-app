@@ -106,10 +106,12 @@ export function MarkdownRenderer({
           ul: ({ node, ...props }) => <ul className="list-disc pl-5 mb-4 space-y-2" {...props} />,
           ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-4 space-y-2" {...props} />,
           li: ({ node, ...props }) => <li className="mb-1" {...props} />,
-          code: ({ node, inline, ...props }) => 
-            inline 
+          code: ({ node, ...props }: { node: any; [key: string]: any }) => {
+            const isInline = props.inline || false;
+            return isInline
               ? <code className="px-1 py-0.5 bg-muted rounded text-sm" {...props} />
-              : <code className="block p-4 bg-muted rounded-md overflow-x-auto my-4 text-sm" {...props} />,
+              : <code className="block p-4 bg-muted rounded-md overflow-x-auto my-4 text-sm" {...props} />;
+          },
           pre: ({ node, ...props }) => <pre className="bg-muted p-0 rounded-md overflow-hidden" {...props} />,
           hr: ({ node, ...props }) => <hr className="my-8 border-primary/20" {...props} />,
           img: ({ node, ...props }) => (
