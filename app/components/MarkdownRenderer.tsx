@@ -15,6 +15,9 @@ interface MarkdownRendererProps {
   lineHeight?: number;
 }
 
+/**
+ * A versatile content renderer that supports markdown, HTML, and plain text
+ */
 export function MarkdownRenderer({
   content,
   format = 'markdown',
