@@ -25,8 +25,14 @@ export default function BookDetails({ bookId }: BookDetailsProps) {
         },
         body: JSON.stringify({ question }),
       });
-    } catch (error) {
-      setError(error.message);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setAnswer(data.answer);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -42,8 +48,14 @@ export default function BookDetails({ bookId }: BookDetailsProps) {
           'Content-Type': 'application/json',
         },
       });
-    } catch (error) {
-      setError(error.message);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setSummary(data.summary);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
