@@ -74,7 +74,8 @@ export function BookChat({ bookId, bookTitle, className }: BookChatProps) {
     setTimeoutId(timeout)
 
     try {
-      const response = await fetch(`/api/books/${bookId}/ask`, {
+      // Try the API route first
+      let response = await fetch(`/api/books/${bookId}/ask`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -85,6 +86,25 @@ export function BookChat({ bookId, bookTitle, className }: BookChatProps) {
           temperature: 0,
         }),
       })
+
+      // If the response is not ok, try the direct API call
+      if (!response.ok) {
+        console.warn("API route failed, trying direct backend access");
+        
+        // Fallback to direct backend call
+        const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://dull-meggie-1omar-d9f030db.koyeb.app';
+        response = await fetch(`${backendUrl}/books/${bookId}/ask`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            book_id: bookId,
+            query: userMessage,
+            temperature: 0,
+          }),
+        });
+      }
 
       // Clear the timeout since we got a response
       if (timeoutId) {
@@ -104,7 +124,7 @@ export function BookChat({ bookId, bookTitle, className }: BookChatProps) {
         ...prev,
         {
           role: "assistant",
-          content: data.answer || "No response received",
+          content: data.answer || data.response || "No response received",
         },
       ])
     } catch (error: any) {

@@ -46,12 +46,27 @@ export function SentimentAnalysis({ bookId, onError, wordCloudOnly = false, hide
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/books/${bookId}/sentiment`, {
+      // Try the API route first
+      let response = await fetch(`/api/books/${bookId}/sentiment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         }
       });
+      
+      // If the response is not ok, try the direct API call
+      if (!response.ok) {
+        console.warn("API route failed, trying direct backend access");
+        
+        // Fallback to direct backend call
+        const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://dull-meggie-1omar-d9f030db.koyeb.app';
+        response = await fetch(`${backendUrl}/books/${bookId}/sentiment`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          }
+        });
+      }
       
       if (!response.ok) {
         const errorMessage = `Failed to fetch sentiment: ${response.statusText}`;
