@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect } from "react"
-import { API_BASE_URL } from '@/app/lib/env'
+
+// Define API_BASE_URL directly
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://dull-meggie-1omar-d9f030db.koyeb.app';
 
 interface Book {
   id: string
